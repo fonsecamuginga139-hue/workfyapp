@@ -14,6 +14,223 @@ export type Database = {
   }
   public: {
     Tables: {
+      biosite_blocks: {
+        Row: {
+          appearance: Json
+          biosite_id: string
+          content: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          owner_id: string
+          position: number
+          size: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          appearance?: Json
+          biosite_id: string
+          content?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          owner_id: string
+          position?: number
+          size?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          appearance?: Json
+          biosite_id?: string
+          content?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          owner_id?: string
+          position?: number
+          size?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_blocks_biosite_id_fkey"
+            columns: ["biosite_id"]
+            isOneToOne: false
+            referencedRelation: "biosites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biosite_bookings: {
+        Row: {
+          biosite_id: string
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          id: string
+          notes: string | null
+          owner_id: string
+          scheduled_date: string
+          scheduled_time: string
+          service_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          biosite_id: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          id?: string
+          notes?: string | null
+          owner_id: string
+          scheduled_date: string
+          scheduled_time: string
+          service_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          biosite_id?: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          service_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_bookings_biosite_id_fkey"
+            columns: ["biosite_id"]
+            isOneToOne: false
+            referencedRelation: "biosites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "biosite_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "biosite_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biosite_deliveries: {
+        Row: {
+          access_key_hash: string
+          biosite_id: string
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          delivered_at: string
+          id: string
+          key_hint: string
+          key_rotated_at: string
+          last_accessed_at: string | null
+          owner_id: string
+          permissions: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_key_hash: string
+          biosite_id: string
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          key_hint: string
+          key_rotated_at?: string
+          last_accessed_at?: string | null
+          owner_id: string
+          permissions?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_key_hash?: string
+          biosite_id?: string
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          key_hint?: string
+          key_rotated_at?: string
+          last_accessed_at?: string | null
+          owner_id?: string
+          permissions?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_deliveries_biosite_id_fkey"
+            columns: ["biosite_id"]
+            isOneToOne: true
+            referencedRelation: "biosites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "biosite_deliveries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biosite_delivery_history: {
+        Row: {
+          created_at: string
+          delivery_id: string
+          details: Json
+          event_type: string
+          id: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_id: string
+          details?: Json
+          event_type: string
+          id?: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_id?: string
+          details?: Json
+          event_type?: string
+          id?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_delivery_history_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "biosite_deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biosite_events: {
         Row: {
           biosite_id: string
@@ -46,10 +263,195 @@ export type Database = {
           },
         ]
       }
+      biosite_forms: {
+        Row: {
+          appearance: Json
+          biosite_id: string
+          created_at: string
+          description: string
+          enabled: boolean
+          fields: Json
+          id: string
+          owner_id: string
+          position: number
+          submit_label: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appearance?: Json
+          biosite_id: string
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          fields?: Json
+          id?: string
+          owner_id: string
+          position?: number
+          submit_label?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appearance?: Json
+          biosite_id?: string
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          fields?: Json
+          id?: string
+          owner_id?: string
+          position?: number
+          submit_label?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_forms_biosite_id_fkey"
+            columns: ["biosite_id"]
+            isOneToOne: false
+            referencedRelation: "biosites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biosite_leads: {
+        Row: {
+          answers: Json
+          biosite_id: string
+          created_at: string
+          email: string | null
+          form_id: string | null
+          id: string
+          message: string | null
+          name: string | null
+          owner_id: string
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          biosite_id: string
+          created_at?: string
+          email?: string | null
+          form_id?: string | null
+          id?: string
+          message?: string | null
+          name?: string | null
+          owner_id: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          biosite_id?: string
+          created_at?: string
+          email?: string | null
+          form_id?: string | null
+          id?: string
+          message?: string | null
+          name?: string | null
+          owner_id?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_leads_biosite_id_fkey"
+            columns: ["biosite_id"]
+            isOneToOne: false
+            referencedRelation: "biosites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "biosite_leads_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "biosite_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biosite_services: {
+        Row: {
+          available: boolean
+          biosite_id: string
+          category_id: string | null
+          created_at: string
+          cta_label: string
+          cta_type: string
+          description: string
+          duration_minutes: number | null
+          featured: boolean
+          id: string
+          media_type: string
+          media_url: string | null
+          name: string
+          owner_id: string
+          position: number
+          price: number | null
+          promotional_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          biosite_id: string
+          category_id?: string | null
+          created_at?: string
+          cta_label?: string
+          cta_type?: string
+          description?: string
+          duration_minutes?: number | null
+          featured?: boolean
+          id?: string
+          media_type?: string
+          media_url?: string | null
+          name: string
+          owner_id: string
+          position?: number
+          price?: number | null
+          promotional_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          biosite_id?: string
+          category_id?: string | null
+          created_at?: string
+          cta_label?: string
+          cta_type?: string
+          description?: string
+          duration_minutes?: number | null
+          featured?: boolean
+          id?: string
+          media_type?: string
+          media_url?: string | null
+          name?: string
+          owner_id?: string
+          position?: number
+          price?: number | null
+          promotional_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biosite_services_biosite_id_fkey"
+            columns: ["biosite_id"]
+            isOneToOne: false
+            referencedRelation: "biosites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biosites: {
         Row: {
           action_buttons_data: Json
           appearance: Json
+          branding: Json
           catalog_categories: Json
           catalog_items: Json
           category: string
@@ -57,6 +459,7 @@ export type Database = {
           client_notes: string | null
           client_phone: string | null
           completion_progress: number
+          content_version: number
           cover_url: string | null
           created_at: string
           id: string
@@ -66,7 +469,10 @@ export type Database = {
           sale_price: number | null
           sale_status: string
           sections: Json
+          seo: Json
           short_description: string
+          showcase_opt_in: boolean
+          showcased_at: string | null
           slug: string
           social_links_data: Json
           sold_date: string | null
@@ -80,6 +486,7 @@ export type Database = {
         Insert: {
           action_buttons_data?: Json
           appearance?: Json
+          branding?: Json
           catalog_categories?: Json
           catalog_items?: Json
           category?: string
@@ -87,6 +494,7 @@ export type Database = {
           client_notes?: string | null
           client_phone?: string | null
           completion_progress?: number
+          content_version?: number
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -96,7 +504,10 @@ export type Database = {
           sale_price?: number | null
           sale_status?: string
           sections?: Json
+          seo?: Json
           short_description?: string
+          showcase_opt_in?: boolean
+          showcased_at?: string | null
           slug: string
           social_links_data?: Json
           sold_date?: string | null
@@ -110,6 +521,7 @@ export type Database = {
         Update: {
           action_buttons_data?: Json
           appearance?: Json
+          branding?: Json
           catalog_categories?: Json
           catalog_items?: Json
           category?: string
@@ -117,6 +529,7 @@ export type Database = {
           client_notes?: string | null
           client_phone?: string | null
           completion_progress?: number
+          content_version?: number
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -126,7 +539,10 @@ export type Database = {
           sale_price?: number | null
           sale_status?: string
           sections?: Json
+          seo?: Json
           short_description?: string
+          showcase_opt_in?: boolean
+          showcased_at?: string | null
           slug?: string
           social_links_data?: Json
           sold_date?: string | null
@@ -136,6 +552,39 @@ export type Database = {
           user_id?: string
           views_count?: number
           whatsapp_config?: Json
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -172,12 +621,43 @@ export type Database = {
     }
     Functions: {
       get_biosite_analytics: { Args: { p_biosite_id: string }; Returns: Json }
+      get_client_biosite: {
+        Args: { p_key: string; p_slug: string }
+        Returns: Json
+      }
       get_public_biosite: { Args: { p_slug: string }; Returns: Json }
       is_slug_available: {
         Args: { p_exclude_id?: string; p_slug: string }
         Returns: boolean
       }
       list_public_biosites: { Args: { p_limit?: number }; Returns: Json }
+      list_showcase_biosites: { Args: { p_limit?: number }; Returns: Json }
+      rotate_biosite_access_key: {
+        Args: {
+          p_biosite_id: string
+          p_client_id: string
+          p_client_name: string
+          p_client_phone?: string
+        }
+        Returns: string
+      }
+      submit_biosite_booking: {
+        Args: {
+          p_date: string
+          p_email: string
+          p_name: string
+          p_notes?: string
+          p_phone: string
+          p_service_id: string
+          p_slug: string
+          p_time: string
+        }
+        Returns: string
+      }
+      submit_biosite_form: {
+        Args: { p_form_id: string; p_payload: Json; p_slug: string }
+        Returns: string
+      }
       track_biosite_event: {
         Args: { p_label?: string; p_slug: string; p_type: string }
         Returns: undefined

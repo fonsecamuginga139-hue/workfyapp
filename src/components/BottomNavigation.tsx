@@ -99,11 +99,6 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         >
           <div className="relative">
             <DollarSign className="h-5 w-5" />
-            {soldCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white">
-                {soldCount}
-              </span>
-            )}
           </div>
           <span className="text-[10px] tracking-tight">Vendas</span>
           {activeTab === 'vendas' && (

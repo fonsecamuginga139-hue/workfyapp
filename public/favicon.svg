@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient: Workfy Electric / Royal Blue -->
+    <linearGradient id="workfyBg" x1="10%" y1="5%" x2="90%" y2="95%">
+      <stop offset="0%" stop-color="#1B66FF" />
+      <stop offset="50%" stop-color="#155EEF" />
+      <stop offset="100%" stop-color="#0F52E8" />
+    </linearGradient>
+
+    <!-- 3D Fold Ribbon Shadow Gradient (Center Twist) -->
+    <linearGradient id="centerFoldShadow" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="25%" stop-color="#E2EDFE" />
+      <stop offset="55%" stop-color="#C2DAFD" />
+      <stop offset="85%" stop-color="#DDEBFE" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+
+    <!-- Subtle Crease Overlay -->
+    <linearGradient id="creaseShade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E48C2" stop-opacity="0.28" />
+      <stop offset="50%" stop-color="#155EEF" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow under Ribbon -->
+    <filter id="softRibbonDepth" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#062E8A" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Squircle Background -->
+  <rect width="512" height="512" rx="118" ry="118" fill="url(#workfyBg)" />
+
+  <!-- The Iconic Folded Ribbon "W" -->
+  <g filter="url(#softRibbonDepth)">
+    
+    <!-- LAYER 1: Right Wing & Under-Fold -->
+    <!-- Descends from apex (256, 212) down to right trough (314, 348), then climbs to top-right tip (398, 172) -->
+    <path
+      d="M 256 212
+         C 268 212, 280 220, 288 234
+         L 322 298
+         C 334 322, 350 330, 368 322
+         C 384 314, 394 298, 386 278
+         L 360 216
+         C 354 202, 362 188, 376 182
+         C 390 176, 404 184, 410 198
+         L 440 270
+         C 456 310, 442 352, 406 372
+         C 368 392, 320 376, 292 326
+         L 260 266
+         C 252 248, 244 236, 236 230
+         Z"
+      fill="url(#centerFoldShadow)"
+    />
+
+    <!-- LAYER 2: Left Wing & Foreground Fold (Pure Crisp White) -->
+    <!-- Starts at top-left tip (126, 192), sweeps down to left trough (198, 348), climbs to apex and loops over -->
+    <path
+      d="M 126 190
+         C 114 188, 100 198, 104 214
+         L 142 308
+         C 158 348, 198 372, 238 352
+         C 264 338, 278 314, 282 288
+         L 290 232
+         C 292 216, 278 206, 264 210
+         C 252 214, 244 224, 240 236
+         L 230 286
+         C 224 308, 204 320, 184 314
+         C 168 308, 158 294, 152 278
+         L 126 212
+         C 122 202, 124 196, 126 190
+         Z"
+      fill="#FFFFFF"
+    />
+
+    <!-- LAYER 3: Crease shading on the inner fold for crisp 3D illusion -->
+    <path
+      d="M 256 212
+         C 268 212, 280 220, 288 234
+         L 322 298
+         C 334 322, 350 330, 368 322
+         C 384 314, 394 298, 386 278
+         L 360 216
+         C 354 202, 362 188, 376 182
+         C 390 176, 404 184, 410 198
+         L 440 270
+         C 456 310, 442 352, 406 372
+         C 368 392, 320 376, 292 326
+         L 260 266
+         C 252 248, 244 236, 236 230
+         Z"
+      fill="url(#creaseShade)"
+    />
+  </g>
+</svg>

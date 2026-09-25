@@ -144,7 +144,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <Activity className="h-4 w-4" />
                 <span>Gerenciador</span>
-                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
               </button>
 
               {/* TAB 3: VENDAS & FATURAMENTO */}
@@ -192,7 +191,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <button
               onClick={() => onNavigate('/dashboard/biosites/new')}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#155EEF] to-[#00F0FF] px-3.5 py-2 text-xs font-bold text-white shadow-2xs hover:opacity-90 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-[#155EEF] px-3.5 py-2 text-xs font-bold text-white shadow-2xs hover:opacity-90 transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span className="hidden sm:inline">Novo biosite</span>
@@ -218,7 +217,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }`}
         >
           <span>Gerenciador</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
         </button>
         <button
           onClick={() => setActiveTab('vendas')}
@@ -393,7 +391,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               referrerPolicy="no-referrer"
                             />
                           ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-[#155EEF] to-[#00F0FF] text-white font-black text-base shadow-xs">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#155EEF] text-white font-black text-base shadow-xs">
                               {b.name.charAt(0).toUpperCase()}
                             </div>
                           )}

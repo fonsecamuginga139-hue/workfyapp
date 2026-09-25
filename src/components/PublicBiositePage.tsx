@@ -117,7 +117,6 @@ export const PublicBiositePage: React.FC<PublicBiositePageProps> = ({ slug, onNa
       {isOwner && (
         <div className="sticky top-0 z-50 bg-[#0B1F3A]/95 backdrop-blur-md text-white px-4 py-2 text-xs flex items-center justify-between border-b border-white/10 shadow-xs">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-semibold text-white/90">Visualização Pública</span>
           </div>
           <div className="flex items-center gap-2">

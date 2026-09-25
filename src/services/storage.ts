@@ -112,7 +112,7 @@ async function flushSave(id: string) {
   pendingPayload.delete(id);
   pendingSaves.delete(id);
   if (!payload || Object.keys(payload).length === 0) return;
-  const { error } = await supabase.from('biosites').update(payload).eq('id', id);
+  const { error } = await supabase.from('biosites').update(payload as any).eq('id', id);
   if (error) console.error('Erro ao guardar biosite:', error.message);
 }
 

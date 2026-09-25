@@ -128,9 +128,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <LayoutGrid className="h-4 w-4" />
                 <span>Meus Biosites</span>
-                <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded-full font-extrabold">
-                  {biosites.length}
-                </span>
               </button>
 
               {/* TAB 2: GERENCIADOR */}
@@ -157,19 +154,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <DollarSign className="h-4 w-4" />
                 <span>Vendas & Faturamento</span>
-                {soldCount > 0 && (
-                  <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-extrabold">
-                    {soldCount}
-                  </span>
-                )}
-              </button>
-
-              {/* DEMO LINK */}
-              <button
-                onClick={() => onNavigate('/b/barbearia-andrian')}
-                className="text-[#667085] hover:text-[#0B1F3A] px-2 py-2 transition-colors cursor-pointer"
-              >
-                Ver exemplo no ar
               </button>
             </nav>
           </div>
@@ -326,12 +310,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     <Plus className="h-4 w-4" />
                     Criar meu biosite
-                  </button>
-                  <button
-                    onClick={() => onNavigate('/b/barbearia-andrian')}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-[#EEF3F8] bg-[#F7F9FC] px-5 py-3 text-xs font-semibold text-[#0B1F3A] hover:bg-slate-100 transition-all cursor-pointer"
-                  >
-                    Ver demonstração real
                   </button>
                 </div>
               </div>

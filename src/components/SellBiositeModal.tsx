@@ -116,7 +116,6 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
             </div>
 
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
-              <Sparkles className="h-3.5 w-3.5" />
               Venda Concluída com Sucesso!
             </span>
 
@@ -140,7 +139,6 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
                 }}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white hover:opacity-90 transition-all cursor-pointer"
               >
-                <Zap className="h-4 w-4 " />
                 <span>Ver no painel de vendas</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </button>
@@ -323,7 +321,6 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
                 onClick={() => handleSave(true)}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white hover:opacity-90 transition-all cursor-pointer"
               >
-                <Sparkles className="h-4 w-4" />
                 <span>Marcar como VENDIDO Agora</span>
               </button>
 

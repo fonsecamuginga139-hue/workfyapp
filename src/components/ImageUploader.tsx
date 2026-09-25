@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { StorageService } from '../services/storage';
 import { Upload, Link2, X, Image as ImageIcon, Check, RefreshCw } from 'lucide-react';
 
 interface ImageUploaderProps {
@@ -91,10 +92,14 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     setIsProcessing(true);
 
     try {
+      if (file.size > 15 * 1024 * 1024) throw new Error('Imagem demasiado grande (máx. 15 MB).');
       const optimizedDataUrl = await optimizeImageFile(file, maxDimension);
-      onChange(optimizedDataUrl);
+      const blob = await (await fetch(optimizedDataUrl)).blob();
+      const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+      const url = await StorageService.uploadImage(blob, ext);
+      onChange(url);
     } catch (err) {
-      setErrorMessage('Erro ao carregar a imagem. Tente novamente ou use um link.');
+      setErrorMessage(err instanceof Error && err.message.includes('máx') ? err.message : 'Erro ao enviar a imagem. Tente novamente ou use um link.');
     } finally {
       setIsProcessing(false);
     }

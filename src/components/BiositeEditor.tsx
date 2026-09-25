@@ -156,15 +156,14 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
       .replace(/[^a-z0-9-]/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    if (clean && !StorageService.isSlugAvailable(clean, biosite.id)) {
-      setSlugError('Este link já está em uso por outro biosite.');
-    } else {
-      setSlugError(null);
-    }
-
-    triggerAutoSave({
-      ...biosite,
-      slug: clean || biosite.slug,
+    if (!clean) return;
+    setSlugError(null);
+    StorageService.checkSlugRemote(clean, biosite.id).then((ok) => {
+      if (!ok) {
+        setSlugError('Este link já está em uso por outro biosite.');
+      } else {
+        triggerAutoSave({ ...StorageService.getBiositeById(biosite.id)!, slug: clean });
+      }
     });
   };
 
@@ -177,6 +176,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
       ...biosite,
       status: 'published',
     });
+    void StorageService.saveNow(biosite.id);
     if (updated) {
       setBiosite(updated);
       setAutosaveStatus('saved');

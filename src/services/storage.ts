@@ -1,4 +1,4 @@
-import { Biosite, User, BusinessCategory, DaySchedule, ThemePreset, ButtonStyle } from '../types';
+import { Biosite, User, BusinessCategory, DaySchedule, ThemePreset, ButtonStyle, BiositeBlock, BiositeService, BiositeForm } from '../types';
 import { THEME_PRESETS } from '../constants/themes';
 import { supabase } from '../integrations/supabase/client';
 
@@ -55,6 +55,26 @@ function rowToBiosite(r: Row): Biosite {
     coverUrl: r.cover_url || '',
     status: r.status === 'published' ? 'published' : 'draft',
     viewsCount: r.views_count || 0,
+    showcaseOptIn: Boolean(r.showcase_opt_in),
+    showcasedAt: r.showcased_at || undefined,
+    seo: r.seo || {},
+    branding: r.branding || { enabled: true, text: 'Criado com Workfy' },
+    blocks: (r.blocks || []).map((block: Row) => ({
+      id: block.id, biositeId: block.biosite_id, ownerId: block.owner_id, type: block.type,
+      position: block.position || 0, enabled: block.enabled !== false, size: block.size || 'standard',
+      content: block.content || {}, appearance: block.appearance || {},
+    })),
+    servicesData: (r.services_data || []).map((service: Row) => ({
+      id: service.id, biositeId: service.biosite_id, name: service.name, description: service.description || '',
+      price: service.price == null ? undefined : Number(service.price), promotionalPrice: service.promotional_price == null ? undefined : Number(service.promotional_price),
+      durationMinutes: service.duration_minutes || undefined, mediaType: service.media_type || 'image', mediaUrl: service.media_url || undefined,
+      ctaType: service.cta_type || 'booking', ctaLabel: service.cta_label || 'Agendar', featured: Boolean(service.featured),
+      available: service.available !== false, position: service.position || 0,
+    })),
+    formsData: (r.forms_data || []).map((form: Row) => ({
+      id: form.id, biositeId: form.biosite_id, title: form.title, description: form.description || '',
+      submitLabel: form.submit_label || 'Enviar', fields: form.fields || [], enabled: form.enabled !== false, position: form.position || 0,
+    })),
     saleStatus: r.sale_status || 'internal',
     salePrice: r.sale_price != null ? Number(r.sale_price) : undefined,
     soldPrice: r.sold_price != null ? Number(r.sold_price) : undefined,
@@ -88,6 +108,7 @@ function biositeToRow(b: Partial<Biosite>): Row {
     ['whatsappConfig', 'whatsapp_config'], ['actionButtonsData', 'action_buttons_data'],
     ['catalogCategories', 'catalog_categories'], ['catalogItems', 'catalog_items'],
     ['socialLinksData', 'social_links_data'],
+    ['showcaseOptIn', 'showcase_opt_in'], ['showcasedAt', 'showcased_at'], ['seo', 'seo'], ['branding', 'branding'],
   ];
   const out: Row = {};
   for (const [k, col] of map) {
@@ -148,9 +169,12 @@ export const StorageService = {
       biositesCache = [];
       return null;
     }
-    const [{ data: profile }, { data: rows }] = await Promise.all([
+    const [{ data: profile }, { data: rows }, { data: blocks }, { data: services }, { data: forms }] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', authUser.id).maybeSingle(),
       supabase.from('biosites').select('*').eq('user_id', authUser.id).order('created_at', { ascending: false }),
+      supabase.from('biosite_blocks' as any).select('*').eq('owner_id', authUser.id).order('position'),
+      supabase.from('biosite_services' as any).select('*').eq('owner_id', authUser.id).order('position'),
+      supabase.from('biosite_forms' as any).select('*').eq('owner_id', authUser.id).order('position'),
     ]);
     currentUser = {
       id: authUser.id,
@@ -159,7 +183,12 @@ export const StorageService = {
       avatarUrl: profile?.avatar_url || undefined,
       createdAt: profile?.created_at || authUser.created_at,
     };
-    biositesCache = (rows || []).map(rowToBiosite);
+    biositesCache = (rows || []).map((row) => rowToBiosite({
+      ...row,
+      blocks: (blocks || []).filter((item: Row) => item.biosite_id === row.id),
+      services_data: (services || []).filter((item: Row) => item.biosite_id === row.id),
+      forms_data: (forms || []).filter((item: Row) => item.biosite_id === row.id),
+    }));
     return currentUser;
   },
 
@@ -280,6 +309,12 @@ export const StorageService = {
       coverUrl: initial?.coverUrl || '',
       status: 'draft',
       viewsCount: 0,
+      showcaseOptIn: false,
+      seo: {},
+      branding: { enabled: true, text: 'Criado com Workfy' },
+      blocks: [],
+      servicesData: [],
+      formsData: [],
       appearance: {
         themePreset: presetId,
         backgroundType: preset.backgroundType,
@@ -429,9 +464,76 @@ export const StorageService = {
     if (error) throw new Error(error.message);
     const { data, error: e2 } = await supabase.storage
       .from('biosite-images')
-      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      .createSignedUrl(path, 60 * 60 * 24 * 7);
     if (e2 || !data) throw new Error(e2?.message || 'Falha ao gerar link da imagem');
     return data.signedUrl;
+  },
+
+  async listShowcaseBiosites(limit = 8): Promise<Biosite[]> {
+    const { data, error } = await supabase.rpc('list_showcase_biosites' as any, { p_limit: limit });
+    if (error || !Array.isArray(data)) return [];
+    return data.map((row: Row) => rowToBiosite(row));
+  },
+
+  async setShowcaseOptIn(id: string, enabled: boolean): Promise<Biosite | null> {
+    const updated = this.updateBiosite(id, { showcaseOptIn: enabled, showcasedAt: enabled ? new Date().toISOString() : undefined });
+    await this.saveNow(id);
+    return updated;
+  },
+
+  async saveBlock(biositeId: string, block: BiositeBlock): Promise<BiositeBlock> {
+    if (!currentUser) throw new Error('Sessão expirada.');
+    const payload = { id: block.id.startsWith('block-') ? undefined : block.id, biosite_id: biositeId, owner_id: currentUser.id, type: block.type, position: block.position, enabled: block.enabled, size: block.size, content: block.content, appearance: block.appearance };
+    const { data, error } = await supabase.from('biosite_blocks' as any).upsert(payload as any).select('*').single();
+    if (error || !data) throw new Error(error?.message || 'Não foi possível guardar o bloco.');
+    const saved = rowToBiosite({ id: biositeId, slug: '', blocks: [data] }).blocks?.[0] as BiositeBlock;
+    const site = this.getBiositeById(biositeId);
+    if (site) this.updateBiosite(biositeId, { blocks: [...(site.blocks || []).filter((item) => item.id !== block.id), saved].sort((a,b) => a.position-b.position) });
+    return saved;
+  },
+
+  async deleteBlock(biositeId: string, blockId: string) {
+    const { error } = await supabase.from('biosite_blocks' as any).delete().eq('id', blockId);
+    if (error) throw new Error(error.message);
+    const site = this.getBiositeById(biositeId);
+    if (site) this.updateBiosite(biositeId, { blocks: (site.blocks || []).filter((item) => item.id !== blockId) });
+  },
+
+  async submitForm(slug: string, formId: string, payload: Record<string, string>) {
+    const { error } = await supabase.rpc('submit_biosite_form' as any, { p_slug: slug, p_form_id: formId, p_payload: payload });
+    if (error) throw new Error('Não foi possível enviar. Tente novamente.');
+  },
+
+  async submitBooking(slug: string, serviceId: string, values: { name: string; phone: string; email?: string; date: string; time: string; notes?: string }) {
+    const { error } = await supabase.rpc('submit_biosite_booking' as any, { p_slug: slug, p_service_id: serviceId, p_name: values.name, p_phone: values.phone, p_email: values.email || '', p_date: values.date, p_time: values.time, p_notes: values.notes || '' });
+    if (error) throw new Error('Não foi possível solicitar o agendamento.');
+  },
+
+  async fetchInbox() {
+    if (!currentUser) return { leads: [], bookings: [] };
+    const [{ data: leads }, { data: bookings }] = await Promise.all([
+      supabase.from('biosite_leads' as any).select('*').eq('owner_id', currentUser.id).order('created_at', { ascending: false }),
+      supabase.from('biosite_bookings' as any).select('*, biosite_services(name)').eq('owner_id', currentUser.id).order('scheduled_date'),
+    ]);
+    return { leads: leads || [], bookings: bookings || [] };
+  },
+
+  async createService(biositeId: string, service: Omit<BiositeService, 'id' | 'biositeId'>) {
+    if (!currentUser) throw new Error('Sessão expirada.');
+    const { data, error } = await supabase.from('biosite_services' as any).insert({ biosite_id: biositeId, owner_id: currentUser.id, name: service.name, description: service.description, price: service.price, promotional_price: service.promotionalPrice, duration_minutes: service.durationMinutes, media_type: service.mediaType, media_url: service.mediaUrl, cta_type: service.ctaType, cta_label: service.ctaLabel, featured: service.featured, available: service.available, position: service.position } as any).select('*').single();
+    if (error || !data) throw new Error(error?.message || 'Não foi possível criar o serviço.');
+    await this.loadSession();
+    notify();
+    return data;
+  },
+
+  async createForm(biositeId: string, form: Omit<BiositeForm, 'id' | 'biositeId'>) {
+    if (!currentUser) throw new Error('Sessão expirada.');
+    const { data, error } = await supabase.from('biosite_forms' as any).insert({ biosite_id: biositeId, owner_id: currentUser.id, title: form.title, description: form.description, submit_label: form.submitLabel, fields: form.fields, enabled: form.enabled, position: form.position } as any).select('*').single();
+    if (error || !data) throw new Error(error?.message || 'Não foi possível criar o formulário.');
+    await this.loadSession();
+    notify();
+    return data;
   },
 
   // Calculate detailed progress of a biosite (0 - 100%)

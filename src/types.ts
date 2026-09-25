@@ -57,9 +57,64 @@ export interface CatalogItem {
   description: string;
   price: number; // In Kz (Angolan Kwanza)
   imageUrl?: string;
+  mediaType?: 'image' | 'video';
+  videoUrl?: string;
+  promotionalPrice?: number;
+  badge?: string;
+  available?: boolean;
+  ctaLabel?: string;
   isFeatured?: boolean;
   ctaType: 'whatsapp' | 'appointment' | 'info';
   order: number;
+}
+
+export type BiositeBlockType = 'hero' | 'text' | 'image' | 'video' | 'buttons' | 'music' | 'form' | 'services' | 'spacer';
+
+export interface BiositeBlock {
+  id: string;
+  biositeId: string;
+  ownerId: string;
+  type: BiositeBlockType;
+  position: number;
+  enabled: boolean;
+  size: 'compact' | 'standard' | 'large';
+  content: Record<string, unknown>;
+  appearance: Record<string, unknown>;
+}
+
+export interface BiositeService {
+  id: string;
+  biositeId: string;
+  name: string;
+  description: string;
+  price?: number;
+  promotionalPrice?: number;
+  durationMinutes?: number;
+  mediaType: 'image' | 'video';
+  mediaUrl?: string;
+  ctaType: 'booking' | 'whatsapp' | 'info';
+  ctaLabel: string;
+  featured: boolean;
+  available: boolean;
+  position: number;
+}
+
+export interface BiositeFormField {
+  id: string;
+  type: 'text' | 'email' | 'tel' | 'textarea';
+  label: string;
+  required: boolean;
+}
+
+export interface BiositeForm {
+  id: string;
+  biositeId: string;
+  title: string;
+  description: string;
+  submitLabel: string;
+  fields: BiositeFormField[];
+  enabled: boolean;
+  position: number;
 }
 
 export interface ActionButton {
@@ -104,6 +159,13 @@ export interface Biosite {
   coverUrl?: string;
   status: 'draft' | 'published';
   viewsCount: number;
+  showcaseOptIn?: boolean;
+  showcasedAt?: string;
+  seo?: { title?: string; description?: string; shareImageUrl?: string };
+  branding?: { enabled?: boolean; text?: string };
+  blocks?: BiositeBlock[];
+  servicesData?: BiositeService[];
+  formsData?: BiositeForm[];
 
   // Commercial & Sales Management (Follow de Vendas & Progresso)
   saleStatus?: BiositeSaleStatus; // 'available' | 'negotiating' | 'sold' | 'internal'

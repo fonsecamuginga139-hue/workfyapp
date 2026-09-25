@@ -192,7 +192,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             activeTab === 'biosites' ? 'bg-[#155EEF] text-white' : 'text-[#667085]'
           }`}
         >
-          Biosites ({biosites.length})
+          Biosites
         </button>
         <button
           onClick={() => setActiveTab('manager')}
@@ -209,7 +209,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }`}
         >
           <span>Vendas</span>
-          {soldCount > 0 && <span className="bg-emerald-500 text-white text-[9px] px-1 rounded-full">{soldCount}</span>}
+
         </button>
       </div>
 

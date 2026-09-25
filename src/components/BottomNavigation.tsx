@@ -39,7 +39,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           onClick={() => onSelectTab('biosites')}
           className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
             activeTab === 'biosites'
-              ? 'text-[#155EEF] font-bold scale-105'
+              ? 'text-[#155EEF] font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
           }`}
         >
@@ -63,13 +63,12 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           onClick={() => onSelectTab('manager')}
           className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
             activeTab === 'manager'
-              ? 'text-emerald-600 font-bold scale-105'
+              ? 'text-emerald-600 font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
           }`}
         >
           <div className="relative">
             <Activity className="h-5 w-5" />
-            <span className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
           </div>
           <span className="text-[10px] tracking-tight">Gerenciador</span>
           {activeTab === 'manager' && (
@@ -82,7 +81,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           id="dock-tab-new"
           onClick={() => onSelectTab('new')}
           title="Criar novo biosite"
-          className="relative -top-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#155EEF] to-[#00F0FF] text-white shadow-lg shadow-[#155EEF]/30 hover:scale-110 active:scale-95 transition-all cursor-pointer border-2 border-white"
+          className="relative -top-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#155EEF] text-white shadow-sm transition-all cursor-pointer border-2 border-white"
         >
           <Plus className="h-6 w-6 stroke-[2.5]" />
           <span className="sr-only">Novo biosite</span>
@@ -94,17 +93,12 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           onClick={() => onSelectTab('vendas')}
           className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
             activeTab === 'vendas'
-              ? 'text-emerald-700 font-bold scale-105'
+              ? 'text-emerald-700 font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
           }`}
         >
           <div className="relative">
             <DollarSign className="h-5 w-5" />
-            {soldCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-black text-white">
-                {soldCount}
-              </span>
-            )}
           </div>
           <span className="text-[10px] tracking-tight">Vendas</span>
           {activeTab === 'vendas' && (
@@ -118,7 +112,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           onClick={() => onSelectTab('settings')}
           className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
             activeTab === 'settings'
-              ? 'text-[#0B1F3A] font-bold scale-105'
+              ? 'text-[#0B1F3A] font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
           }`}
         >

@@ -156,15 +156,14 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
       .replace(/[^a-z0-9-]/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    if (clean && !StorageService.isSlugAvailable(clean, biosite.id)) {
-      setSlugError('Este link já está em uso por outro biosite.');
-    } else {
-      setSlugError(null);
-    }
-
-    triggerAutoSave({
-      ...biosite,
-      slug: clean || biosite.slug,
+    if (!clean) return;
+    setSlugError(null);
+    StorageService.checkSlugRemote(clean, biosite.id).then((ok) => {
+      if (!ok) {
+        setSlugError('Este link já está em uso por outro biosite.');
+      } else {
+        triggerAutoSave({ ...StorageService.getBiositeById(biosite.id)!, slug: clean });
+      }
     });
   };
 
@@ -177,6 +176,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
       ...biosite,
       status: 'published',
     });
+    void StorageService.saveNow(biosite.id);
     if (updated) {
       setBiosite(updated);
       setAutosaveStatus('saved');
@@ -378,7 +378,6 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
           {/* Status Indicator Badge */}
           {biosite.status === 'published' ? (
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Produção (Público)</span>
             </span>
           ) : (
@@ -391,7 +390,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
           <div className="hidden lg:flex items-center gap-1 text-[11px] font-medium text-[#667085] px-2">
             <span
               className={`h-2 w-2 rounded-full ${
-                autosaveStatus === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
+                autosaveStatus === 'saving' ? 'bg-amber-400' : 'bg-emerald-500'
               }`}
             />
             <span>{autosaveStatus === 'saving' ? 'Salvando...' : 'Salvo'}</span>
@@ -483,7 +482,6 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
           ) : (
             <div className="bg-emerald-50/70 border-b border-emerald-200 px-3.5 py-2 flex items-center justify-between gap-2 shrink-0 text-xs">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <span className="font-bold text-emerald-900 truncate">
                   Biosite em Produção (Público)
                 </span>
@@ -572,7 +570,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                         : 'bg-amber-100 text-amber-900 border border-amber-200'
                     }`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${
-                        biosite.status === 'published' ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'
+                        biosite.status === 'published' ? 'bg-emerald-600' : 'bg-amber-600'
                       }`} />
                       {biosite.status === 'published' ? 'Produção (Público)' : 'Fase de Rascunho'}
                     </span>
@@ -1814,7 +1812,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                             className={`h-7 w-7 rounded-full border border-white/20 shadow-xs transition-transform ${
                               biosite.appearance?.backgroundColor === s.value
                                 ? 'ring-2 ring-offset-2 ring-[#155EEF] scale-110'
-                                : 'hover:scale-105'
+                                : ''
                             }`}
                           />
                         ))}
@@ -1893,7 +1891,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                           className={`h-7 w-7 rounded-lg border border-white/20 shadow-xs transition-transform ${
                             biosite.appearance?.cardBgColor === c.value
                               ? 'ring-2 ring-offset-2 ring-[#155EEF] scale-110'
-                              : 'hover:scale-105'
+                              : ''
                           }`}
                         />
                       ))}
@@ -1941,7 +1939,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                           className={`h-7 w-7 rounded-lg border border-white/20 shadow-xs transition-transform ${
                             biosite.appearance?.cardBorderColor === b.value
                               ? 'ring-2 ring-offset-2 ring-[#155EEF] scale-110'
-                              : 'hover:scale-105'
+                              : ''
                           }`}
                         />
                       ))}
@@ -2108,7 +2106,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                           className={`h-7 w-7 rounded-full shadow-xs transition-transform ${
                             (biosite.appearance?.buttonBgColor || biosite.appearance?.primaryColor) === btnColor.value
                               ? 'ring-2 ring-offset-2 ring-[#155EEF] scale-110'
-                              : 'hover:scale-105'
+                              : ''
                           }`}
                         />
                       ))}
@@ -2519,7 +2517,6 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mb-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Publicado em Produção</span>
             </div>
             <h3 className="text-lg font-extrabold text-[#0B1F3A]">Seu biosite saiu do rascunho e está no ar!</h3>

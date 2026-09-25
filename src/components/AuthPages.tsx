@@ -16,8 +16,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onSuccess, onNavigate 
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -37,21 +38,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onSuccess, onNavigate 
     }
 
     setLoading(true);
-    setTimeout(() => {
-      try {
-        let user: User;
-        if (mode === 'signup') {
-          user = StorageService.signup(name.trim(), email.trim());
-        } else {
-          user = StorageService.login(email.trim());
+    try {
+      if (mode === 'signup') {
+        const user = await StorageService.signup(name.trim(), email.trim(), password);
+        if (!user) {
+          setInfo('Conta criada! Enviámos um link de confirmação para o seu e-mail. Confirme e depois faça login.');
+          return;
         }
-        setLoading(false);
         onSuccess(user);
-      } catch {
-        setLoading(false);
-        setError('Não conseguimos processar o acesso. Tente novamente.');
+      } else {
+        const user = await StorageService.login(email.trim(), password);
+        onSuccess(user);
       }
-    }, 400);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não conseguimos processar o acesso. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -82,6 +85,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onSuccess, onNavigate 
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="rounded-2xl border border-[#EEF3F8] bg-white p-6 sm:p-8 shadow-xs">
+          {info && (
+            <div className="mb-5 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs text-emerald-800">
+              {info}
+            </div>
+          )}
           {error && (
             <div className="mb-5 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs text-red-700">
               <AlertCircle className="h-4 w-4 shrink-0" />
@@ -134,6 +142,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onSuccess, onNavigate 
                 </div>
                 <input
                   type="password"
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

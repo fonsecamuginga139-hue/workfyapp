@@ -91,7 +91,7 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
   return (
     <div
       id="sell-biosite-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
     >
       <div
         id="sell-biosite-modal"
@@ -111,12 +111,11 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
         {isSuccessSold ? (
           /* CELEBRATORY SUCCESS STATE */
           <div className="py-6 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_25px_rgba(16,185,129,0.3)] mb-4 animate-bounce">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mb-4">
               <CheckCircle2 className="h-9 w-9 stroke-[2.5]" />
             </div>
 
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
-              <Sparkles className="h-3.5 w-3.5" />
               Venda Concluída com Sucesso!
             </span>
 
@@ -129,7 +128,7 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
               <strong className="text-emerald-400 font-bold text-sm">
                 {formatKz(parsedSoldPrice || parsedSalePrice)}
               </strong>{' '}
-              registrada e injetada no fluxo do seu Dashboard Futurista.
+              registrada e injetada no fluxo do seu painel de vendas.
             </p>
 
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -138,10 +137,9 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
                   onClose();
                   if (onGoToDashboard) onGoToDashboard();
                 }}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-[#00F0FF] py-3 text-xs font-extrabold text-black hover:opacity-90 transition-all cursor-pointer shadow-[0_0_20px_rgba(0,240,255,0.4)]"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white hover:opacity-90 transition-all cursor-pointer"
               >
-                <Zap className="h-4 w-4 fill-black" />
-                <span>Ver no Dashboard Futurista</span>
+                <span>Ver no painel de vendas</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </button>
 
@@ -157,7 +155,7 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
           /* FORM STATE */
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#155EEF] to-[#00F0FF] text-white shadow-md">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#155EEF] text-white shadow-md">
                 <DollarSign className="h-6 w-6 stroke-[2.5]" />
               </div>
               <div>
@@ -321,9 +319,8 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleSave(true)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-[#00FF9D] py-3 text-xs font-black text-black hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_15px_rgba(0,255,157,0.35)]"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white hover:opacity-90 transition-all cursor-pointer"
               >
-                <Sparkles className="h-4 w-4" />
                 <span>Marcar como VENDIDO Agora</span>
               </button>
 

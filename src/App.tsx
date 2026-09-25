@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StorageService } from './services/storage';
+import { supabase } from './integrations/supabase/client';
 import { User } from './types';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPages';
@@ -44,17 +45,35 @@ function resolveCurrentPath(): string {
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => resolveCurrentPath());
-  const [user, setUser] = useState<User | null>(() => StorageService.getCurrentUser());
+  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const handleLocationChange = () => {
-      setCurrentPath(resolveCurrentPath());
-      setUser(StorageService.getCurrentUser());
-    };
+    let active = true;
+    StorageService.loadSession().then((u) => {
+      if (!active) return;
+      setUser(u);
+      setReady(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        // defer to avoid deadlocks inside the auth callback
+        setTimeout(() => {
+          StorageService.loadSession().then((u) => active && setUser(u));
+        }, 0);
+      }
+    });
+    const unsub = StorageService.subscribe(() => setUser(StorageService.getCurrentUser()));
 
+    const handleLocationChange = () => setCurrentPath(resolveCurrentPath());
     window.addEventListener('popstate', handleLocationChange);
     window.addEventListener('hashchange', handleLocationChange);
     return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+      unsub();
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('hashchange', handleLocationChange);
     };
@@ -71,11 +90,19 @@ export default function App() {
     navigate('/dashboard');
   };
 
-  const handleLogout = () => {
-    StorageService.logout();
+  const handleLogout = async () => {
+    await StorageService.logout();
     setUser(null);
     navigate('/');
   };
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC]">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#155EEF] border-t-transparent" />
+      </div>
+    );
+  }
 
   // 1. Check for public biosite route: /b/:slug
   const biositeMatch = currentPath.match(/^\/b\/([^/?#]+)/i);

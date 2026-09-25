@@ -100,7 +100,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
   };
 
   return (
-    <div id="biosite-manager-root" className="space-y-6 animate-in fade-in duration-300">
+    <div id="biosite-manager-root" className="space-y-6">
       {/* 1. TOP COMMERCIAL TELEMETRY SUMMARY */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* ATIVOS NO AR */}
@@ -109,7 +109,6 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
             <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider">
               No Ar / Ativos
             </span>
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-black text-[#0B1F3A]">{activeCount}</span>
@@ -146,7 +145,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
             onClick={onGoToFuturisticDashboard}
             className="mt-2 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
           >
-            <span>Ver no Dashboard Futurista</span>
+            <span>Ver no painel de vendas</span>
             <ArrowUpRight className="h-3 w-3" />
           </button>
         </div>
@@ -258,7 +257,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {/* LOGO / AVATAR */}
-                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#155EEF] to-[#00F0FF] text-white font-black overflow-hidden shadow-2xs">
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#155EEF] text-white font-black overflow-hidden shadow-2xs">
                       {b.logoUrl ? (
                         <img
                           src={b.logoUrl}
@@ -336,7 +335,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
-                          isPublished ? 'bg-emerald-500 animate-ping' : 'bg-slate-400'
+                          isPublished ? 'bg-emerald-500' : 'bg-slate-400'
                         }`}
                       />
                       <span>{isPublished ? 'Ativo no Ar' : 'Rascunho'}</span>
@@ -441,7 +440,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         isSold
                           ? 'border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                          : 'bg-gradient-to-r from-[#155EEF] to-[#00F0FF] text-white shadow-2xs hover:opacity-90'
+                          : 'bg-[#155EEF] text-white shadow-2xs hover:opacity-90'
                       }`}
                     >
                       <DollarSign className="h-3.5 w-3.5" />

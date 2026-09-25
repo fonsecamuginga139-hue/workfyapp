@@ -13,10 +13,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user, onNavigate, on
   const [name, setName] = useState(user.name);
   const [saved, setSaved] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = { ...user, name: name.trim() };
-    StorageService.setCurrentUser(updated);
+    if (!name.trim()) return;
+    try {
+      await StorageService.updateProfile(name.trim());
+    } catch {
+      window.alert('Não foi possível guardar. Tente novamente.');
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

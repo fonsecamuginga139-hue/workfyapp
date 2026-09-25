@@ -57,9 +57,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setBiosites(StorageService.getBiosites(user.id));
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Tem certeza que deseja excluir o biosite "${name}"?`)) {
-      StorageService.deleteBiosite(id);
+      const ok = await StorageService.deleteBiosite(id);
+      if (!ok) window.alert('Não foi possível excluir. Tente novamente.');
       reloadBiosites();
     }
   };

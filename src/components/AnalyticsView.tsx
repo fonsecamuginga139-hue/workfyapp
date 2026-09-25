@@ -21,6 +21,10 @@ interface AnalyticsViewProps {
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ biositeId, onNavigate }) => {
   const biosite = StorageService.getBiositeById(biositeId);
+  const [remote, setRemote] = React.useState<Biosite['analytics'] | null>(null);
+  React.useEffect(() => {
+    StorageService.fetchAnalytics(biositeId).then(setRemote);
+  }, [biositeId]);
 
   if (!biosite) {
     return (
@@ -36,7 +40,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ biositeId, onNavig
     );
   }
 
-  const analytics = biosite.analytics || {
+  const analytics = remote || {
     views: 0,
     whatsappClicks: 0,
     callClicks: 0,

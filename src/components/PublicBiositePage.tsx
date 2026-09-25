@@ -17,15 +17,21 @@ export const PublicBiositePage: React.FC<PublicBiositePageProps> = ({ slug, onNa
   const [localBiosites, setLocalBiosites] = useState<Biosite[]>([]);
 
   useEffect(() => {
-    const found = StorageService.getBiositeBySlug(slug);
-    if (found) {
-      setBiosite(found);
-      // Track view event
-      StorageService.trackEvent(slug, 'view');
-    } else {
-      setLocalBiosites(StorageService.getBiosites());
-    }
-    setLoading(false);
+    let active = true;
+    setLoading(true);
+    StorageService.fetchPublicBiosite(slug).then((found) => {
+      if (!active) return;
+      if (found) {
+        setBiosite(found);
+        if (found.status === 'published') StorageService.trackEvent(found.slug, 'view');
+      } else {
+        setLocalBiosites(StorageService.getBiosites());
+      }
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   if (loading) {
@@ -94,7 +100,7 @@ export const PublicBiositePage: React.FC<PublicBiositePageProps> = ({ slug, onNa
   const currentUser = StorageService.getCurrentUser();
   const allUserBiosites = StorageService.getBiosites();
   const isOwner = Boolean(
-    (currentUser && biosite.userId === currentUser.id) ||
+    (currentUser && biosite.userId && biosite.userId === currentUser.id) ||
     allUserBiosites.some((b) => b.id === biosite.id)
   );
 

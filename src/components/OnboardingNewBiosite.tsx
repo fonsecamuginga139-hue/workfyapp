@@ -89,11 +89,11 @@ export const OnboardingNewBiosite: React.FC<OnboardingNewBiositeProps> = ({
     setStep(2);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     setLoading(true);
-    setTimeout(() => {
-      // Create completely empty biosite as mandated by Item 15
-      const newBio = StorageService.createEmptyBiosite(userId, {
+    setError(null);
+    try {
+      const newBio = await StorageService.createEmptyBiosite(userId, {
         name: name.trim(),
         category,
         shortDescription: shortDescription.trim(),
@@ -103,10 +103,12 @@ export const OnboardingNewBiosite: React.FC<OnboardingNewBiositeProps> = ({
         primaryColor,
         buttonStyle,
       });
-
-      setLoading(false);
       onFinished(newBio.id);
-    }, 400);
+    } catch {
+      setError('Não foi possível criar o biosite. Verifique a sua ligação e tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

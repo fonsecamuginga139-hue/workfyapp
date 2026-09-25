@@ -12,10 +12,44 @@ import {
   CheckCircle2,
   Share2,
 } from 'lucide-react';
-import { SAMPLE_BIOSITE_BARBEARIA } from '../services/storage';
+import { supabase } from '../integrations/supabase/client';
+import { Biosite } from '../types';
 import { BiositeViewer } from './BiositeViewer';
 import { QrCodeModal } from './QrCodeModal';
 import { WorkfyLogo } from './WorkfyLogo';
+
+const Reveal: React.FC<{ children: React.ReactNode; className?: string; delay?: number }> = ({
+  children,
+  className = '',
+  delay = 0,
+}) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      style={{ transitionDelay: `${delay}ms` }}
+      className={`reveal ${visible ? 'reveal-in' : ''} ${className}`}
+    >
+      {children}
+    </div>
+  );
+};
 
 interface LandingPageProps {
   onNavigate: (route: string) => void;
@@ -28,6 +62,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [charCount, setCharCount] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showcase, setShowcase] = useState<Biosite | null>(null);
+
+  useEffect(() => {
+    supabase.rpc('list_public_biosites', { p_limit: 1 }).then(({ data }) => {
+      const r = Array.isArray(data) ? (data[0] as any) : null;
+      if (!r) return;
+      setShowcase({
+        id: r.id, userId: '', slug: r.slug, name: r.name, category: r.category,
+        shortDescription: r.short_description || '', logoUrl: r.logo_url || '', coverUrl: r.cover_url || '',
+        status: 'published', viewsCount: r.views_count || 0, appearance: r.appearance || {},
+        sections: r.sections || {}, whatsappConfig: r.whatsapp_config || {},
+        actionButtonsData: r.action_buttons_data || [], catalogCategories: r.catalog_categories || [],
+        catalogItems: r.catalog_items || [], socialLinksData: r.social_links_data || {},
+        analytics: { views: 0, whatsappClicks: 0, callClicks: 0, locationClicks: 0, appointmentClicks: 0, productClicks: 0, recentEvents: [] },
+        createdAt: r.created_at, updatedAt: r.updated_at,
+      } as Biosite);
+    });
+  }, []);
 
   // Smooth typing effect specifically for "Seu negócio merece mais do que um link na bio."
   useEffect(() => {
@@ -69,9 +121,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const highlightTyped = charCount > HIGHLIGHT_START ? currentTyped.slice(HIGHLIGHT_START) : '';
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] text-[#101828]">
+    <div className="landing min-h-screen bg-[#F7F9FC] text-[#101828] overflow-x-hidden">
       {/* NAVBAR */}
-      <header className="sticky top-0 z-40 border-b border-[#EEF3F8] bg-white/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-white/60 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div
             onClick={() => onNavigate('/')}
@@ -82,12 +134,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => onNavigate('/b/barbearia-andrian')}
+            {showcase && <button
+              onClick={() => onNavigate(`/b/${showcase.slug}`)}
               className="hidden sm:inline-flex text-xs font-semibold text-[#667085] hover:text-[#0B1F3A] transition-colors px-3 py-2"
             >
               Ver Exemplo Real
-            </button>
+            </button>}
             <button
               onClick={() => onNavigate('/login')}
               className="text-xs font-semibold text-[#0B1F3A] hover:text-[#155EEF] px-3.5 py-2 transition-colors"
@@ -105,11 +157,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
-        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
+      <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28 hero-gradient">
+        <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full hero-glow" />
+        <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 hero-enter">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#EEF3F8] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#0B1F3A] shadow-2xs mb-6">
-            <span className="flex h-2 w-2 rounded-full bg-[#155EEF] animate-pulse" />
-            <span>Presença digital completa para o seu negócio</span>
+                        <span>Presença digital completa para o seu negócio</span>
           </div>
 
           <h1 className="text-3xl font-extrabold tracking-tight text-[#0B1F3A] sm:text-5xl sm:leading-[1.15] max-w-3xl mx-auto min-h-[72px] sm:min-h-[110px] flex items-center justify-center flex-wrap">
@@ -118,7 +170,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               <span className="text-[#155EEF] ml-1.5">{highlightTyped}</span>
             )}
             <span
-              className="inline-block w-[3px] sm:w-[4px] h-[0.85em] bg-[#155EEF] rounded-full ml-1 animate-pulse align-middle"
+              className="inline-block w-[3px] sm:w-[4px] h-[0.85em] bg-[#155EEF] rounded-full ml-1 caret-blink align-middle"
               aria-hidden="true"
             />
           </h1>
@@ -137,50 +189,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               <ArrowRight className="h-4 w-4" />
             </button>
 
-            <button
-              onClick={() => onNavigate('/b/barbearia-andrian')}
+            {showcase && <button
+              onClick={() => onNavigate(`/b/${showcase.slug}`)}
               className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-[#EEF3F8] bg-white px-6 py-3.5 text-sm font-semibold text-[#0B1F3A] hover:bg-[#F7F9FC] transition-all"
             >
               Ver exemplo real
-            </button>
+            </button>}
           </div>
 
           <p className="mt-3 text-xs text-[#667085]">
             Crie do zero. Personalize. Publique.
           </p>
 
-          {/* REAL MOCKUP OF WORKFY BIOSITE IN SMARTPHONE */}
-          <div className="mt-14 sm:mt-16 flex justify-center">
+          {/* REAL PUBLISHED BIOSITE IN SMARTPHONE */}
+          {showcase && <Reveal className="mt-14 sm:mt-16 flex justify-center">
             <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[390px] rounded-[44px] border-[10px] border-[#0B1F3A] bg-white shadow-2xl p-0.5 overflow-hidden">
               {/* Speaker notch */}
               <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 h-4 w-28 rounded-full bg-[#0B1F3A]" />
 
               <div className="h-[640px] w-full overflow-y-auto pt-6 scrollbar-none">
                 <BiositeViewer
-                  biosite={SAMPLE_BIOSITE_BARBEARIA}
+                  biosite={showcase}
                   isSimulator={true}
                   onOpenQrCode={() => setShowQrModal(true)}
                 />
               </div>
             </div>
-          </div>
+          </Reveal>}
         </div>
       </section>
 
       {/* PRODUCT VALUE / EVERYTHING YOUR CLIENT NEEDS */}
-      <section className="border-t border-[#EEF3F8] bg-white py-16 sm:py-24">
+      <section className="section-soft py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="text-center max-w-xl mx-auto">
+          <Reveal className="text-center max-w-xl mx-auto">
             <h2 className="text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl">
               Tudo o que seu cliente precisa. Em um só lugar.
             </h2>
             <p className="mt-2 text-sm text-[#667085]">
               Uma experiência completa projetada para transformar visitantes em clientes reais.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
-            <div className="rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5">
+          <Reveal className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
+            <div className="feature-card rounded-2xl border border-[#EEF3F8] bg-white/80 p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#155EEF] shadow-2xs mb-3">
                 <MessageCircle className="h-5 w-5" />
               </div>
@@ -190,7 +242,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5">
+            <div className="feature-card rounded-2xl border border-[#EEF3F8] bg-white/80 p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#155EEF] shadow-2xs mb-3">
                 <ShoppingBag className="h-5 w-5" />
               </div>
@@ -200,7 +252,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5">
+            <div className="feature-card rounded-2xl border border-[#EEF3F8] bg-white/80 p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#155EEF] shadow-2xs mb-3">
                 <MapPin className="h-5 w-5" />
               </div>
@@ -210,7 +262,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5">
+            <div className="feature-card rounded-2xl border border-[#EEF3F8] bg-white/80 p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#155EEF] shadow-2xs mb-3">
                 <Calendar className="h-5 w-5" />
               </div>
@@ -220,7 +272,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5">
+            <div className="feature-card rounded-2xl border border-[#EEF3F8] bg-white/80 p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#155EEF] shadow-2xs mb-3">
                 <QrIcon className="h-5 w-5" />
               </div>
@@ -230,7 +282,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5">
+            <div className="feature-card rounded-2xl border border-[#EEF3F8] bg-white/80 p-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#155EEF] shadow-2xs mb-3">
                 <Share2 className="h-5 w-5" />
               </div>
@@ -239,24 +291,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 Sua URL personalizada workfy.app/b/seu-negocio para divulgar em todo lugar.
               </p>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* HOW IT WORKS (ONLY 3 STEPS) */}
-      <section className="py-16 sm:py-24 border-t border-[#EEF3F8]">
+      <section className="section-plain py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="text-center">
+          <Reveal className="text-center">
             <h2 className="text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl">
               Do zero ao ar em poucos minutos.
             </h2>
             <p className="mt-2 text-sm text-[#667085]">
               Simples, direto e sem complexidade desnecessária.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-2xl bg-white p-6 border border-[#EEF3F8] shadow-2xs">
+          <Reveal className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="feature-card rounded-2xl bg-white p-6 border border-[#EEF3F8] shadow-2xs">
               <span className="text-3xl font-black text-[#155EEF]">01</span>
               <h3 className="mt-3 text-base font-bold text-[#0B1F3A]">Crie</h3>
               <p className="mt-2 text-xs text-[#667085] leading-relaxed">
@@ -264,7 +316,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-6 border border-[#EEF3F8] shadow-2xs">
+            <div className="feature-card rounded-2xl bg-white p-6 border border-[#EEF3F8] shadow-2xs">
               <span className="text-3xl font-black text-[#155EEF]">02</span>
               <h3 className="mt-3 text-base font-bold text-[#0B1F3A]">Personalize</h3>
               <p className="mt-2 text-xs text-[#667085] leading-relaxed">
@@ -272,62 +324,62 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-white p-6 border border-[#EEF3F8] shadow-2xs">
+            <div className="feature-card rounded-2xl bg-white p-6 border border-[#EEF3F8] shadow-2xs">
               <span className="text-3xl font-black text-[#155EEF]">03</span>
               <h3 className="mt-3 text-base font-bold text-[#0B1F3A]">Publique</h3>
               <p className="mt-2 text-xs text-[#667085] leading-relaxed">
                 Compartilhe seu link e transforme seu QR Code em uma porta de entrada para o seu negócio.
               </p>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* SEGMENT EXAMPLES */}
-      <section className="border-t border-[#EEF3F8] bg-white py-16 sm:py-24">
+      <section className="section-soft py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="text-center max-w-xl mx-auto">
+          <Reveal className="text-center max-w-xl mx-auto">
             <h2 className="text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl">
               Feito para qualquer tipo de negócio.
             </h2>
             <p className="mt-2 text-sm text-[#667085]">
               Escolha seu segmento e veja como o Workfy adapta sua vitrine.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <Reveal className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[
-              { title: 'Barbearia', desc: 'Cortes, barbas e agendamento direto', slug: 'barbearia-andrian' },
-              { title: 'Restaurante', desc: 'Cardápio digital com fotos e pedidos', slug: 'restaurante-marginal' },
-              { title: 'Salão de Beleza', desc: 'Penteados, estética e manicure', slug: 'barbearia-andrian' },
-              { title: 'Loja & Boutique', desc: 'Catálogo de roupas, calçados e acessórios', slug: 'barbearia-andrian' },
-              { title: 'Profissional', desc: 'Consultores, advogados e médicos', slug: 'barbearia-andrian' },
-              { title: 'Serviços Locais', desc: 'Oficinas, lavanderias e entregas', slug: 'barbearia-andrian' },
+              { title: 'Barbearia', desc: 'Cortes, barbas e agendamento direto' },
+              { title: 'Restaurante', desc: 'Cardápio digital com fotos e pedidos' },
+              { title: 'Salão de Beleza', desc: 'Penteados, estética e manicure' },
+              { title: 'Loja & Boutique', desc: 'Catálogo de roupas, calçados e acessórios' },
+              { title: 'Profissional', desc: 'Consultores, advogados e médicos' },
+              { title: 'Serviços Locais', desc: 'Oficinas, lavanderias e entregas' },
             ].map((seg, idx) => (
               <div
                 key={idx}
-                className="group rounded-2xl border border-[#EEF3F8] bg-[#F7F9FC] p-5 hover:border-[#155EEF]/30 hover:bg-white transition-all flex flex-col justify-between"
+                className="feature-card group rounded-2xl border border-[#EEF3F8] bg-white/80 p-5 hover:border-[#155EEF]/30 hover:bg-white transition-all flex flex-col justify-between"
               >
                 <div>
                   <h3 className="text-sm font-bold text-[#0B1F3A]">{seg.title}</h3>
                   <p className="mt-1 text-xs text-[#667085] leading-relaxed">{seg.desc}</p>
                 </div>
                 <button
-                  onClick={() => onNavigate(`/b/${seg.slug}`)}
+                  onClick={() => onNavigate('/signup')}
                   className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#155EEF] hover:text-[#124bbf]"
                 >
-                  Ver exemplo
+                  Criar o meu
                   <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </button>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* FINAL CALL TO ACTION */}
-      <section className="border-t border-[#EEF3F8] py-16 sm:py-20 text-center">
-        <div className="mx-auto max-w-2xl px-4 sm:px-6">
+      <section className="cta-gradient py-16 sm:py-20 text-center">
+        <Reveal className="mx-auto max-w-2xl px-4 sm:px-6">
           <h2 className="text-2xl font-bold tracking-tight text-[#0B1F3A] sm:text-3xl">
             Dê ao seu negócio um lugar para chamar de seu na internet.
           </h2>
@@ -343,7 +395,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* FOOTER */}
@@ -359,12 +411,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </footer>
 
       {/* QR CODE MODAL FOR SAMPLE */}
-      <QrCodeModal
-        isOpen={showQrModal}
-        onClose={() => setShowQrModal(false)}
-        url={window.location.origin + '/b/barbearia-andrian'}
-        businessName="Barbearia Andrian"
-      />
+      {showcase && (
+        <QrCodeModal
+          isOpen={showQrModal}
+          onClose={() => setShowQrModal(false)}
+          url={`${window.location.origin}/b/${showcase.slug}`}
+          businessName={showcase.name}
+        />
+      )}
     </div>
   );
 };

@@ -1,0 +1,6 @@
+{
+  "name": "Workfy",
+  "description": "Plataforma SaaS para criação de biosites profissionais para negócios com catálogo, WhatsApp, localização e QR Code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

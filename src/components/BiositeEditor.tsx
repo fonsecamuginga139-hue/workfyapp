@@ -520,6 +520,14 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
             </div>
           )}
 
+          <div className="border-b border-[#EEF3F8] bg-white px-4 py-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#0B1F3A]">Mostrar na página inicial</p>
+              <p className="text-[11px] text-[#667085]">O seu biosite pode aparecer no celular da vitrine quando estiver publicado.</p>
+            </div>
+            <input type="checkbox" className="h-5 w-5 shrink-0 accent-[#155EEF]" aria-label="Mostrar meu biosite na página inicial" checked={!!biosite.showcaseOptIn} onChange={(event) => triggerAutoSave({...biosite, showcaseOptIn: event.target.checked, showcasedAt: event.target.checked ? new Date().toISOString() : undefined})} />
+          </div>
+
           {/* HORIZONTAL SECTION TABS */}
           <div className="flex border-b border-[#EEF3F8] overflow-x-auto scrollbar-none bg-[#F7F9FC]">
             {[

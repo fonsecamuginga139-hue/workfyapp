@@ -43,3 +43,27 @@ input, textarea, select { font-size: max(16px, 1em) !important; }
 @media (prefers-reduced-motion: reduce) {
   .reveal, .hero-enter, .landing .hero-glow { animation: none !important; transition: none !important; opacity: 1; transform: none; }
 }
+
+/* Showcase devices: proportions and movement stay within the hero viewport. */
+.showcase-stage { max-width: 870px; margin: 0 auto; text-align: left; }
+.showcase-toolbar { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem; color:#0B1F3A; }
+.showcase-toolbar h2 { font-size:clamp(1.25rem, 3vw, 1.75rem); font-weight:800; }
+.showcase-kicker { color:#155EEF; font-size:.7rem; text-transform:uppercase; font-weight:700; margin-bottom:.3rem; }
+.showcase-pause { display:grid; place-items:center; flex:0 0 36px; height:36px; border:1px solid #d8e2ef; border-radius:50%; background:#fff; }
+.showcase-viewport { overflow:hidden; min-height:565px; }
+.showcase-track { display:flex; justify-content:center; align-items:flex-start; gap:25px; animation:showcase-arrive .6s ease-out both; }
+.showcase-phone { flex:0 0 288px; }
+.showcase-phone-1,.showcase-phone-2 { flex-basis:245px; margin-top:44px; }
+.phone-shell { position:relative; height:535px; border:8px solid #152132; border-radius:42px; background:#152132; padding:4px; box-shadow:0 25px 60px -30px #19294a; overflow:hidden; }
+.phone-shell-compact { height:490px; }
+.phone-island { position:absolute; z-index:5; top:14px; left:50%; transform:translateX(-50%); height:17px; width:82px; border-radius:20px; background:#152132; pointer-events:none; }
+.phone-screen { height:100%; border-radius:31px; overflow:auto; background:#fff; scrollbar-width:none; }
+.phone-screen::-webkit-scrollbar { display:none; }
+.phone-open { position:absolute; z-index:6; bottom:8px; left:8px; right:8px; display:flex; justify-content:space-between; align-items:center; gap:6px; padding:9px 14px; color:#fff; background:#152132; font-weight:700; font-size:12px; text-align:left; }
+.phone-open span:first-child { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.showcase-dots { display:flex; justify-content:center; gap:9px; margin-top:12px; }
+.showcase-dots button { width:8px; height:8px; padding:0; border-radius:50%; background:#b9c5d5; }
+.showcase-dots button.is-active { background:#155EEF; width:21px; border-radius:10px; }
+@keyframes showcase-arrive { from { opacity:.4; transform:translateX(42px); } to { opacity:1; transform:translateX(0); } }
+@media(max-width:650px) { .showcase-stage { max-width:100%; } .showcase-viewport { min-height:545px; } .showcase-track { justify-content:flex-start; padding-left:max(0px, calc((100% - 288px)/2)); } .showcase-phone { flex-basis:288px; } .showcase-phone-1,.showcase-phone-2 { display:none; } }
+@media(prefers-reduced-motion:reduce) { .showcase-track { animation:none; } }

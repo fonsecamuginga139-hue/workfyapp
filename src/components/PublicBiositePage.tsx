@@ -34,6 +34,23 @@ export const PublicBiositePage: React.FC<PublicBiositePageProps> = ({ slug, onNa
     };
   }, [slug]);
 
+  useEffect(() => {
+    if (!biosite) return;
+    const originalTitle = document.title;
+    const title = biosite.seo?.title || `${biosite.name} | Workfy`;
+    document.title = title;
+    const description = biosite.seo?.description || biosite.shortDescription;
+    const tags = ['description', 'og:title', 'og:description'];
+    const previous = tags.map((name) => {
+      const selector = name.startsWith('og:') ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+      const tag = document.querySelector<HTMLMetaElement>(selector);
+      const value = tag?.content;
+      if (tag) tag.content = name === 'og:title' ? title : description;
+      return { tag, value };
+    });
+    return () => { document.title = originalTitle; previous.forEach(({tag,value}) => { if (tag && value !== undefined) tag.content = value; }); };
+  }, [biosite]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC]">

@@ -12,6 +12,7 @@ export const BiositeShowcase: React.FC<BiositeShowcaseProps> = ({ onNavigate }) 
   const [paused, setPaused] = useState(false);
 
   useEffect(() => { StorageService.listShowcaseBiosites(8).then(setItems); }, []);
+  useEffect(() => { const media = window.matchMedia('(prefers-reduced-motion: reduce)'); if (media.matches) setPaused(true); const update = () => setPaused(media.matches); media.addEventListener('change', update); return () => media.removeEventListener('change', update); }, []);
   useEffect(() => {
     if (paused || items.length < 2) return;
     const timer = window.setInterval(() => setActive((value) => (value + 1) % items.length), 5200);
@@ -26,7 +27,7 @@ export const BiositeShowcase: React.FC<BiositeShowcaseProps> = ({ onNavigate }) 
   if (!items.length) return null;
 
   return (
-    <section className="showcase-stage" aria-label="Biosites criados na Workfy" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section className="showcase-stage" aria-label="Biosites criados na Workfy" onMouseEnter={() => setPaused(true)} onMouseLeave={() => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPaused(false); }} onFocusCapture={() => setPaused(true)} onBlurCapture={() => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPaused(false); }}>
       <div className="showcase-toolbar">
         <div>
           <p className="showcase-kicker">Criados por utilizadores Workfy</p>

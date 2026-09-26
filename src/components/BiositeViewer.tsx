@@ -24,6 +24,7 @@ import {
 import { Biosite, CatalogItem } from '../types';
 import { formatKz, generateWhatsAppLink } from '../services/storage';
 import { THEME_PRESETS } from '../constants/themes';
+import { PublicLeadForm } from './PublicLeadForm';
 
 export function formatSocialUrl(url?: string, platform?: string): string {
   if (!url) return '';
@@ -1045,6 +1046,35 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
             </p>
           </div>
         )}
+
+        {(biosite.servicesData || []).filter((service) => service.available).length > 0 && (
+          <section className="px-4 py-6 space-y-3" aria-label="Serviços disponíveis">
+            <h2 className="text-base font-bold" style={{ color: textColor }}>Serviços</h2>
+            {(biosite.servicesData || []).filter((service) => service.available).map((service) => (
+              <div key={service.id} className="border p-4 space-y-2 rounded-lg" style={{ backgroundColor: cardBgColor, borderColor: cardBorderColor, color: textColor }}>
+                {service.mediaUrl && (service.mediaType === 'video' ? <video controls preload="none" playsInline className="w-full rounded-lg" src={service.mediaUrl} /> : <img loading="lazy" className="w-full rounded-lg object-cover" src={service.mediaUrl} alt={service.name} />)}
+                <strong className="block">{service.name}</strong>
+                {service.description && <p className="text-xs opacity-75">{service.description}</p>}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold">{service.promotionalPrice != null ? formatKz(service.promotionalPrice) : service.price != null ? formatKz(service.price) : ''}</span>
+                  {service.ctaType === 'whatsapp' && whatsappConfig.phoneNumber && <a href={generateWhatsAppLink(whatsappConfig.phoneNumber, `Olá! Gostaria de saber mais sobre ${service.name}.`)} target="_blank" rel="noopener noreferrer" className="text-sm font-bold underline">{service.ctaLabel}</a>}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+        {(biosite.formsData || []).filter((form) => form.enabled).map((form) => (
+          <div key={form.id} className="px-4 py-3"><PublicLeadForm form={form} slug={biosite.slug} color={buttonBgColor} cardColor={cardBgColor} textColor={textColor} /></div>
+        ))}
+        {(biosite.blocks || []).filter((block) => block.enabled).map((block) => (
+          <section key={block.id} className="px-4 py-4" style={{ color: textColor }}>
+            {block.type === 'text' && <p className="whitespace-pre-wrap">{String(block.content.text || '')}</p>}
+            {block.type === 'image' && typeof block.content.url === 'string' && <img loading="lazy" className="w-full rounded-lg" src={block.content.url} alt={String(block.content.alt || '')} />}
+            {block.type === 'video' && typeof block.content.url === 'string' && <video controls preload="none" playsInline className="w-full rounded-lg" src={block.content.url} />}
+            {block.type === 'music' && typeof block.content.url === 'string' && /^https:\/\/open\.spotify\.com\/(track|album|playlist)\/[\w]+/.test(block.content.url) && <iframe title="Spotify" loading="lazy" src={block.content.url.replace('open.spotify.com/', 'open.spotify.com/embed/')} className="w-full h-40 border-0" />}
+            {block.type === 'spacer' && <div style={{ height: block.size === 'large' ? 64 : block.size === 'compact' ? 16 : 32 }} />}
+          </section>
+        ))}
 
         {/* FOOTER BRANDING */}
         <div

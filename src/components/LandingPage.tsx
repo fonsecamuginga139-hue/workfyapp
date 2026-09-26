@@ -12,9 +12,9 @@ import {
   CheckCircle2,
   Share2,
 } from 'lucide-react';
-import { supabase } from '../integrations/supabase/client';
+import { StorageService } from '../services/storage';
 import { Biosite } from '../types';
-import { BiositeViewer } from './BiositeViewer';
+import { BiositeShowcase } from './BiositeShowcase';
 import { QrCodeModal } from './QrCodeModal';
 import { WorkfyLogo } from './WorkfyLogo';
 
@@ -65,20 +65,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [showcase, setShowcase] = useState<Biosite | null>(null);
 
   useEffect(() => {
-    supabase.rpc('list_public_biosites', { p_limit: 1 }).then(({ data }) => {
-      const r = Array.isArray(data) ? (data[0] as any) : null;
-      if (!r) return;
-      setShowcase({
-        id: r.id, userId: '', slug: r.slug, name: r.name, category: r.category,
-        shortDescription: r.short_description || '', logoUrl: r.logo_url || '', coverUrl: r.cover_url || '',
-        status: 'published', viewsCount: r.views_count || 0, appearance: r.appearance || {},
-        sections: r.sections || {}, whatsappConfig: r.whatsapp_config || {},
-        actionButtonsData: r.action_buttons_data || [], catalogCategories: r.catalog_categories || [],
-        catalogItems: r.catalog_items || [], socialLinksData: r.social_links_data || {},
-        analytics: { views: 0, whatsappClicks: 0, callClicks: 0, locationClicks: 0, appointmentClicks: 0, productClicks: 0, recentEvents: [] },
-        createdAt: r.created_at, updatedAt: r.updated_at,
-      } as Biosite);
-    });
+    StorageService.listShowcaseBiosites(8).then((items) => setShowcase(items[0] || null));
   }, []);
 
   // Smooth typing effect specifically for "Seu negócio merece mais do que um link na bio."
@@ -201,21 +188,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             Crie do zero. Personalize. Publique.
           </p>
 
-          {/* REAL PUBLISHED BIOSITE IN SMARTPHONE */}
-          {showcase && <Reveal className="mt-14 sm:mt-16 flex justify-center">
-            <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[390px] rounded-[44px] border-[10px] border-[#0B1F3A] bg-white shadow-2xl p-0.5 overflow-hidden">
-              {/* Speaker notch */}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 h-4 w-28 rounded-full bg-[#0B1F3A]" />
-
-              <div className="h-[640px] w-full overflow-y-auto pt-6 scrollbar-none">
-                <BiositeViewer
-                  biosite={showcase}
-                  isSimulator={true}
-                  onOpenQrCode={() => setShowQrModal(true)}
-                />
-              </div>
-            </div>
-          </Reveal>}
+          <Reveal className="mt-12 sm:mt-16">
+            <BiositeShowcase onNavigate={onNavigate} />
+          </Reveal>
         </div>
       </section>
 

@@ -320,8 +320,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   const publicUrl = `${window.location.origin}/b/${b.slug}`;
                   const isPublished = b.status === 'published';
                   const isSold = b.saleStatus === 'sold';
-                  const salePrice = b.salePrice || 120000;
-                  const soldPrice = b.soldPrice || salePrice;
+                  const salePrice = b.salePrice;
+                  const soldPrice = b.soldPrice;
 
                   return (
                     <div
@@ -411,7 +411,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               {isSold ? 'Valor Vendido' : 'Preço de Venda'}
                             </span>
                             <span className={`text-xs font-black ${isSold ? 'text-emerald-700' : 'text-[#0B1F3A]'}`}>
-                              {formatKz(isSold ? soldPrice : salePrice)}
+                              {(isSold ? soldPrice : salePrice) != null ? formatKz((isSold ? soldPrice : salePrice) as number) : 'Não definido'}
                             </span>
                           </div>
 

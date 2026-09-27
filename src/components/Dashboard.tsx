@@ -95,7 +95,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
     if (tab === 'biosites' || tab === 'manager' || tab === 'inbox' || tab === 'vendas') {
       setActiveTab(tab);
-      window.history.pushState({}, '', `/dashboard/${tab === 'biosites' ? '' : tab}`);
+      window.history.pushState({}, '', tab === 'biosites' ? '/dashboard' : `/dashboard/${tab}`);
     }
   };
 

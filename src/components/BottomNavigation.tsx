@@ -38,7 +38,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-biosites"
           onClick={() => onSelectTab('biosites')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'biosites'
               ? 'text-[#155EEF] font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
@@ -62,7 +62,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-manager"
           onClick={() => onSelectTab('manager')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'manager'
               ? 'text-emerald-600 font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
@@ -80,7 +80,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-inbox"
           onClick={() => onSelectTab('inbox')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'inbox' ? 'text-[#155EEF] font-bold' : 'hover:text-[#0B1F3A] text-[#667085]'
           }`}
         >
@@ -104,7 +104,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-vendas"
           onClick={() => onSelectTab('vendas')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'vendas'
               ? 'text-emerald-700 font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
@@ -123,7 +123,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-settings"
           onClick={() => onSelectTab('settings')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'settings'
               ? 'text-[#0B1F3A] font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'

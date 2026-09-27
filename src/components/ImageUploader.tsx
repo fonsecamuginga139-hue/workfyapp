@@ -239,7 +239,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                accept={acceptVideo ? 'image/png,image/jpeg,image/webp,video/mp4,video/webm' : 'image/png,image/jpeg,image/webp'}
                 onChange={handleFileChange}
                 className="hidden"
               />
@@ -261,7 +261,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 </div>
 
                 <p className="text-[10px] text-[#667085]">
-                  PNG, JPG, WEBP ou SVG (qualquer dimensão)
+                  {acceptVideo ? 'PNG, JPG, WEBP, MP4 ou WEBM' : 'PNG, JPG ou WEBP'}
                 </p>
               </div>
             </div>
@@ -290,7 +290,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+        accept={acceptVideo ? 'image/png,image/jpeg,image/webp,video/mp4,video/webm' : 'image/png,image/jpeg,image/webp'}
         onChange={handleFileChange}
         className="hidden"
       />

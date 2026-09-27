@@ -18,6 +18,7 @@ import {
   Activity,
   DollarSign,
   LayoutGrid,
+  Inbox,
 } from 'lucide-react';
 import { QrCodeModal } from './QrCodeModal';
 import { WorkfyLogo } from './WorkfyLogo';
@@ -30,7 +31,7 @@ interface DashboardProps {
   user: User;
   onNavigate: (route: string) => void;
   onLogout: () => void;
-  initialTab?: 'biosites' | 'manager' | 'vendas';
+  initialTab?: 'biosites' | 'manager' | 'inbox' | 'vendas';
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -39,7 +40,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLogout,
   initialTab = 'biosites',
 }) => {
-  const [activeTab, setActiveTab] = useState<'biosites' | 'manager' | 'vendas'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'biosites' | 'manager' | 'inbox' | 'vendas'>(initialTab);
+  const [inbox, setInbox] = useState<{ leads: any[]; bookings: any[] }>({ leads: [], bookings: [] });
   const [biosites, setBiosites] = useState<Biosite[]>(() =>
     StorageService.getBiosites(user.id)
   );
@@ -76,6 +78,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const soldBiosites = biosites.filter((b) => b.saleStatus === 'sold');
   const soldCount = soldBiosites.length;
 
+  useEffect(() => {
+    if (activeTab === 'inbox') {
+      StorageService.fetchInbox().then(setInbox);
+    }
+  }, [activeTab]);
+
   const handleDockSelect = (tab: ActiveNavTab) => {
     if (tab === 'new') {
       onNavigate('/dashboard/biosites/new');
@@ -85,7 +93,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       onNavigate('/settings');
       return;
     }
-    if (tab === 'biosites' || tab === 'manager' || tab === 'vendas') {
+    if (tab === 'biosites' || tab === 'manager' || tab === 'inbox' || tab === 'vendas') {
       setActiveTab(tab);
       window.history.pushState({}, '', `/dashboard/${tab === 'biosites' ? '' : tab}`);
     }
@@ -141,6 +149,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <Activity className="h-4 w-4" />
                 <span>Gerenciador</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('inbox')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'inbox' ? 'bg-[#155EEF] text-white shadow-xs' : 'text-[#667085] hover:text-[#0B1F3A]'
+                }`}
+              >
+                <Inbox className="h-4 w-4" />
+                <span>Leads & Reservas</span>
               </button>
 
               {/* TAB 3: VENDAS & FATURAMENTO */}
@@ -201,6 +219,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           }`}
         >
           <span>Gerenciador</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('inbox')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+            activeTab === 'inbox' ? 'bg-[#155EEF] text-white' : 'text-[#667085]'
+          }`}
+        >
+          <span>Leads</span>
         </button>
         <button
           onClick={() => setActiveTab('vendas')}
@@ -521,6 +547,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             ? 'biosites'
             : activeTab === 'manager'
             ? 'manager'
+            : activeTab === 'inbox'
+            ? 'inbox'
             : 'vendas'
         }
         onSelectTab={handleDockSelect}

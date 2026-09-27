@@ -140,7 +140,7 @@ export interface AnalyticsData {
   productClicks: number;
   recentEvents: Array<{
     id: string;
-    type: 'view' | 'whatsapp' | 'call' | 'location' | 'appointment' | 'product';
+    type: 'view' | 'whatsapp' | 'call' | 'location' | 'appointment' | 'product' | 'form_submit' | 'booking_click' | 'service_click' | 'button_click' | 'social_click';
     timestamp: string;
     label?: string;
   }>;

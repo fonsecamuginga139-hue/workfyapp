@@ -10,6 +10,7 @@ interface ImageUploaderProps {
   aspectRatio?: 'square' | 'wide' | 'auto';
   maxDimension?: number;
   placeholderUrl?: string;
+  acceptVideo?: boolean;
 }
 
 /**
@@ -67,6 +68,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   aspectRatio = 'square',
   maxDimension = 1000,
   placeholderUrl = 'https://...',
+  acceptVideo = false,
 }) => {
   const [mode, setMode] = useState<'upload' | 'url'>('upload');
   const [isDragging, setIsDragging] = useState(false);
@@ -83,8 +85,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   };
 
   const processFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setErrorMessage('Por favor selecione um arquivo de imagem válido (PNG, JPG, WEBP, etc).');
+    const safeImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const safeVideoTypes = ['video/mp4', 'video/webm'];
+    if (!safeImageTypes.includes(file.type) && !(acceptVideo && safeVideoTypes.includes(file.type))) {
+      setErrorMessage(acceptVideo ? 'Selecione PNG, JPG, WEBP, MP4 ou WEBM.' : 'Selecione uma imagem PNG, JPG ou WEBP.');
       return;
     }
 
@@ -92,10 +96,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     setIsProcessing(true);
 
     try {
-      if (file.size > 15 * 1024 * 1024) throw new Error('Imagem demasiado grande (máx. 15 MB).');
-      const optimizedDataUrl = await optimizeImageFile(file, maxDimension);
-      const blob = await (await fetch(optimizedDataUrl)).blob();
-      const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+      const isVideo = file.type.startsWith('video/');
+      if (isVideo && file.size > 35 * 1024 * 1024) throw new Error('Vídeo demasiado grande (máx. 35 MB).');
+      if (!isVideo && file.size > 15 * 1024 * 1024) throw new Error('Imagem demasiado grande (máx. 15 MB).');
+      const blob = isVideo ? file : await (await fetch(await optimizeImageFile(file, maxDimension))).blob();
+      const ext = isVideo ? (file.type === 'video/webm' ? 'webm' : 'mp4') : blob.type === 'image/png' ? 'png' : 'jpg';
       const url = await StorageService.uploadImage(blob, ext);
       onChange(url);
     } catch (err) {

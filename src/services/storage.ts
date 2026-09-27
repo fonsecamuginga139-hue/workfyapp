@@ -440,7 +440,7 @@ export const StorageService = {
 
   trackEvent(
     slug: string,
-    type: 'view' | 'whatsapp' | 'call' | 'location' | 'appointment' | 'product',
+    type: 'view' | 'whatsapp' | 'call' | 'location' | 'appointment' | 'product' | 'form_submit' | 'booking_click' | 'service_click' | 'button_click' | 'social_click',
     label?: string
   ) {
     void supabase.rpc('track_biosite_event', { p_slug: slug, p_type: type, p_label: label || undefined });
@@ -500,12 +500,13 @@ export const StorageService = {
   },
 
   async submitForm(slug: string, formId: string, payload: Record<string, string>) {
-    const { error } = await supabase.rpc('submit_biosite_form' as any, { p_slug: slug, p_form_id: formId, p_payload: payload });
+    const normalized = Object.fromEntries(Object.entries(payload).map(([key, value]) => [key, String(value || '').slice(0, 2000)]));
+    const { error } = await supabase.rpc('submit_biosite_form' as any, { p_slug: slug, p_form_id: formId, p_payload: normalized });
     if (error) throw new Error('Não foi possível enviar. Tente novamente.');
   },
 
   async submitBooking(slug: string, serviceId: string, values: { name: string; phone: string; email?: string; date: string; time: string; notes?: string }) {
-    const { error } = await supabase.rpc('submit_biosite_booking' as any, { p_slug: slug, p_service_id: serviceId, p_name: values.name, p_phone: values.phone, p_email: values.email || '', p_date: values.date, p_time: values.time, p_notes: values.notes || '' });
+    const { error } = await supabase.rpc('submit_biosite_booking' as any, { p_slug: slug, p_service_id: serviceId, p_name: values.name.slice(0, 120), p_phone: values.phone.slice(0, 40), p_email: (values.email || '').slice(0, 160), p_date: values.date, p_time: values.time, p_notes: (values.notes || '').slice(0, 1000) });
     if (error) throw new Error('Não foi possível solicitar o agendamento.');
   },
 

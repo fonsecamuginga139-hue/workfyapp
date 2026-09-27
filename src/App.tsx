@@ -150,11 +150,12 @@ export default function App() {
     );
   }
 
-  // 5. Dashboard routes: /dashboard, /dashboard/manager, /dashboard/vendas, /dashboard/biosites
+  // 5. Dashboard routes: /dashboard, /dashboard/manager, /dashboard/inbox, /dashboard/vendas, /dashboard/biosites
   if (
     currentPath === '/dashboard' ||
     currentPath === '/dashboard/biosites' ||
     currentPath === '/dashboard/manager' ||
+    currentPath === '/dashboard/inbox' ||
     currentPath === '/dashboard/vendas'
   ) {
     if (!user) {
@@ -163,6 +164,8 @@ export default function App() {
     const initialTab =
       currentPath === '/dashboard/manager'
         ? 'manager'
+        : currentPath === '/dashboard/inbox'
+        ? 'inbox'
         : currentPath === '/dashboard/vendas'
         ? 'vendas'
         : 'biosites';

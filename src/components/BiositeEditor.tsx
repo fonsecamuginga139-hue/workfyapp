@@ -4,6 +4,9 @@ import {
   BusinessCategory,
   CatalogCategory,
   CatalogItem,
+  BiositeBlock,
+  BiositeService,
+  BiositeForm,
   DaySchedule,
   ThemePreset,
   ButtonStyle,
@@ -70,7 +73,7 @@ interface BiositeEditorProps {
   onNavigate: (route: string) => void;
 }
 
-type EditorTab = 'identity' | 'catalog' | 'whatsapp' | 'location' | 'schedule' | 'appointment' | 'social' | 'appearance';
+type EditorTab = 'identity' | 'blocks' | 'catalog' | 'services' | 'forms' | 'whatsapp' | 'location' | 'schedule' | 'appointment' | 'social' | 'appearance';
 
 const CATEGORIES: BusinessCategory[] = [
   'Restaurante',
@@ -121,6 +124,9 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
     isFeatured: false,
     ctaType: 'whatsapp' as 'whatsapp' | 'appointment' | 'info',
   });
+  const [blockForm, setBlockForm] = useState({ type: 'text' as BiositeBlock['type'], text: '', url: '' });
+  const [serviceForm, setServiceForm] = useState({ name: '', description: '', price: '', durationMinutes: '', mediaUrl: '', mediaType: 'image' as 'image' | 'video', ctaType: 'booking' as BiositeService['ctaType'] });
+  const [leadFormTitle, setLeadFormTitle] = useState('Pedir contacto');
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -149,6 +155,53 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
 
   const publicUrl = `${window.location.origin}/b/${biosite.slug}`;
 
+  const syncCurrentBiosite = () => {
+    const latest = StorageService.getBiositeById(biosite.id);
+    if (latest) setBiosite(latest);
+  };
+
+  const handleAddBlock = async () => {
+    const type = blockForm.type;
+    const content = type === 'text' ? { text: blockForm.text.trim() } : { url: blockForm.url.trim() };
+    if ((type === 'text' && !blockForm.text.trim()) || (type !== 'spacer' && type !== 'text' && !blockForm.url.trim())) return;
+    const block: BiositeBlock = {
+      id: `block-${Date.now()}`, biositeId: biosite.id, ownerId: biosite.userId, type, enabled: true, size: 'standard',
+      position: (biosite.blocks || []).length + 1, content, appearance: {},
+    };
+    const saved = await StorageService.saveBlock(biosite.id, block);
+    triggerAutoSave({ ...biosite, blocks: [...(biosite.blocks || []), saved] });
+    setBlockForm({ type: 'text', text: '', url: '' });
+  };
+
+  const handleAddService = async () => {
+    if (!serviceForm.name.trim()) return;
+    await StorageService.createService(biosite.id, {
+      name: serviceForm.name.trim(), description: serviceForm.description.trim(), price: serviceForm.price ? Number(serviceForm.price) : undefined,
+      durationMinutes: serviceForm.durationMinutes ? Number(serviceForm.durationMinutes) : undefined, mediaType: serviceForm.mediaType, mediaUrl: serviceForm.mediaUrl.trim() || undefined,
+      ctaType: serviceForm.ctaType, ctaLabel: serviceForm.ctaType === 'booking' ? 'Agendar' : serviceForm.ctaType === 'whatsapp' ? 'Pedir no WhatsApp' : 'Saber mais',
+      featured: false, available: true, position: (biosite.servicesData || []).length + 1,
+    });
+    syncCurrentBiosite();
+    setServiceForm({ name: '', description: '', price: '', durationMinutes: '', mediaUrl: '', mediaType: 'image', ctaType: 'booking' });
+  };
+
+  const handleAddLeadForm = async () => {
+    const form: Omit<BiositeForm, 'id' | 'biositeId'> = {
+      title: leadFormTitle.trim() || 'Pedir contacto', description: 'Preencha os dados para o negócio responder.', submitLabel: 'Enviar', enabled: true, position: (biosite.formsData || []).length + 1,
+      fields: [
+        { id: 'name', type: 'text', label: 'Nome', required: true },
+        { id: 'phone', type: 'tel', label: 'Telefone / WhatsApp', required: true },
+        { id: 'message', type: 'textarea', label: 'Mensagem', required: false },
+      ],
+    };
+    await StorageService.createForm(biosite.id, form);
+    syncCurrentBiosite();
+    setLeadFormTitle('Pedir contacto');
+  };
+
+  const toggleBlock = async (block: BiositeBlock) => { await StorageService.saveBlock(biosite.id, { ...block, enabled: !block.enabled }); syncCurrentBiosite(); };
+  const deleteBlock = async (blockId: string) => { await StorageService.deleteBlock(biosite.id, blockId); syncCurrentBiosite(); };
+
   // Handle Slug Update
   const handleSlugChange = (newSlugRaw: string) => {
     const clean = newSlugRaw
@@ -162,7 +215,8 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
       if (!ok) {
         setSlugError('Este link já está em uso por outro biosite.');
       } else {
-        triggerAutoSave({ ...StorageService.getBiositeById(biosite.id)!, slug: clean });
+        const current = StorageService.getBiositeById(biosite.id);
+        if (current) triggerAutoSave({ ...current, slug: clean });
       }
     });
   };
@@ -532,7 +586,10 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
           <div className="flex border-b border-[#EEF3F8] overflow-x-auto scrollbar-none bg-[#F7F9FC]">
             {[
               { id: 'identity', label: 'Negócio', icon: Layers },
+              { id: 'blocks', label: 'Blocos', icon: LayoutList },
               { id: 'catalog', label: 'Catálogo', icon: Plus },
+              { id: 'services', label: 'Serviços', icon: Calendar },
+              { id: 'forms', label: 'Leads', icon: Edit2 },
               { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
               { id: 'location', label: 'Localização', icon: MapPin },
               { id: 'schedule', label: 'Horário', icon: Clock },

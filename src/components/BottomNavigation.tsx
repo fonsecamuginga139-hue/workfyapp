@@ -2,12 +2,13 @@ import React from 'react';
 import {
   LayoutGrid,
   Activity,
+  Inbox,
   DollarSign,
   Plus,
   Settings,
 } from 'lucide-react';
 
-export type ActiveNavTab = 'biosites' | 'manager' | 'vendas' | 'new' | 'settings';
+export type ActiveNavTab = 'biosites' | 'manager' | 'inbox' | 'vendas' | 'new' | 'settings';
 
 interface BottomNavigationProps {
   activeTab: ActiveNavTab;
@@ -37,7 +38,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-biosites"
           onClick={() => onSelectTab('biosites')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'biosites'
               ? 'text-[#155EEF] font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
@@ -61,7 +62,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-manager"
           onClick={() => onSelectTab('manager')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'manager'
               ? 'text-emerald-600 font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
@@ -74,6 +75,18 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           {activeTab === 'manager' && (
             <span className="absolute -bottom-1 h-1 w-5 rounded-full bg-emerald-600" />
           )}
+        </button>
+
+        <button
+          id="dock-tab-inbox"
+          onClick={() => onSelectTab('inbox')}
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
+            activeTab === 'inbox' ? 'text-[#155EEF] font-bold' : 'hover:text-[#0B1F3A] text-[#667085]'
+          }`}
+        >
+          <Inbox className="h-5 w-5" />
+          <span className="text-[10px] tracking-tight">Leads</span>
+          {activeTab === 'inbox' && <span className="absolute -bottom-1 h-1 w-5 rounded-full bg-[#155EEF]" />}
         </button>
 
         {/* 3. CRIAR NOVO (DESTAQUE CENTRAL) */}
@@ -91,7 +104,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-vendas"
           onClick={() => onSelectTab('vendas')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'vendas'
               ? 'text-emerald-700 font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'
@@ -110,7 +123,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
         <button
           id="dock-tab-settings"
           onClick={() => onSelectTab('settings')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-all cursor-pointer ${
+          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
             activeTab === 'settings'
               ? 'text-[#0B1F3A] font-bold'
               : 'hover:text-[#0B1F3A] text-[#667085]'

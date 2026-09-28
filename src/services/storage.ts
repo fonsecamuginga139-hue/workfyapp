@@ -537,6 +537,35 @@ export const StorageService = {
     return data;
   },
 
+  async updateService(serviceId: string, patch: Record<string, unknown>) {
+    const { error } = await supabase.from('biosite_services' as any).update(patch as any).eq('id', serviceId);
+    if (error) throw new Error(error.message);
+    await this.loadSession();
+    notify();
+  },
+
+  async deleteService(serviceId: string) {
+    const { error } = await supabase.from('biosite_services' as any).delete().eq('id', serviceId);
+    if (error) throw new Error(error.message);
+    await this.loadSession();
+    notify();
+  },
+
+  async updateForm(formId: string, patch: Record<string, unknown>) {
+    const { error } = await supabase.from('biosite_forms' as any).update(patch as any).eq('id', formId);
+    if (error) throw new Error(error.message);
+    await this.loadSession();
+    notify();
+  },
+
+  async deleteForm(formId: string) {
+    const { error } = await supabase.from('biosite_forms' as any).delete().eq('id', formId);
+    if (error) throw new Error(error.message);
+    await this.loadSession();
+    notify();
+  },
+
+
   // Calculate detailed progress of a biosite (0 - 100%)
   calculateBiositeProgress(b: Biosite): {
     percentage: number;

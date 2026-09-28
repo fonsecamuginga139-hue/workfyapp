@@ -35,10 +35,10 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
     biosite.saleStatus || 'available'
   );
   const [salePriceInput, setSalePriceInput] = useState<string>(
-    biosite.salePrice ? String(biosite.salePrice) : '120000'
+    biosite.salePrice ? String(biosite.salePrice) : ''
   );
   const [soldPriceInput, setSoldPriceInput] = useState<string>(
-    biosite.soldPrice ? String(biosite.soldPrice) : salePriceInput || '120000'
+    biosite.soldPrice ? String(biosite.soldPrice) : salePriceInput
   );
   const [clientName, setClientName] = useState<string>(biosite.clientName || '');
   const [clientPhone, setClientPhone] = useState<string>(
@@ -46,7 +46,7 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
   );
   const [clientNotes, setClientNotes] = useState<string>(biosite.clientNotes || '');
   const [monthlyFeeInput, setMonthlyFeeInput] = useState<string>(
-    biosite.monthlyFee ? String(biosite.monthlyFee) : '15000'
+    biosite.monthlyFee ? String(biosite.monthlyFee) : ''
   );
   const [isSuccessSold, setIsSuccessSold] = useState(false);
 
@@ -57,8 +57,8 @@ export const SellBiositeModal: React.FC<SellBiositeModalProps> = ({
 
     if (asSoldDirectly || saleStatus === 'sold') {
       const updated = StorageService.markAsSold(biosite.id, {
-        soldPrice: finalSoldPrice || finalSalePrice || 100000,
-        clientName: clientName.trim() || 'Cliente Comercial',
+        soldPrice: finalSoldPrice || finalSalePrice,
+        clientName: clientName.trim(),
         clientPhone: clientPhone.trim(),
         clientNotes: clientNotes.trim(),
         monthlyFee: finalMonthlyFee,

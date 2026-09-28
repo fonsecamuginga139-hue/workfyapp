@@ -37,7 +37,7 @@ export const SalesDashboard: React.FC<SalesDashboardProps> = ({
   );
   
   const totalRevenue = soldBiosites.reduce((acc, b) => acc + (b.soldPrice || b.salePrice || 0), 0);
-  const potentialRevenue = forSaleBiosites.reduce((acc, b) => acc + (b.salePrice || 120000), 0);
+  const potentialRevenue = forSaleBiosites.reduce((acc, b) => acc + (b.salePrice || 0), 0);
   const averageTicket = soldBiosites.length > 0 ? Math.round(totalRevenue / soldBiosites.length) : 0;
 
   const filteredBiosites = userBiosites.filter((b) => {
@@ -193,8 +193,8 @@ export const SalesDashboard: React.FC<SalesDashboardProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {userBiosites.map((b) => {
                 const isSold = b.saleStatus === 'sold';
-                const price = isSold ? (b.soldPrice || b.salePrice || 0) : (b.salePrice || 120000);
-                const maxPrice = Math.max(...userBiosites.map(x => x.soldPrice || x.salePrice || 120000), 150000);
+                const price = isSold ? (b.soldPrice || b.salePrice || 0) : (b.salePrice || 0);
+                const maxPrice = Math.max(...userBiosites.map(x => x.soldPrice || x.salePrice || 0), 1);
                 const percentage = Math.min(Math.round((price / maxPrice) * 100), 100);
 
                 return (
@@ -302,7 +302,7 @@ export const SalesDashboard: React.FC<SalesDashboardProps> = ({
               ) : (
                 filteredBiosites.map((b) => {
                   const isSold = b.saleStatus === 'sold';
-                  const price = isSold ? (b.soldPrice || b.salePrice || 0) : (b.salePrice || 120000);
+                  const price = isSold ? (b.soldPrice || b.salePrice || 0) : (b.salePrice || 0);
 
                   return (
                     <tr key={b.id} className="hover:bg-[#F7F9FC]/50 transition-colors">

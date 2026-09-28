@@ -20,6 +20,7 @@ import { copyToClipboard, openExternalUrl } from '../utils/browser';
 import { BiositeViewer } from './BiositeViewer';
 import { QrCodeModal } from './QrCodeModal';
 import { ImageUploader } from './ImageUploader';
+import { EditorContentPanels } from './EditorContentPanels';
 import {
   THEME_PRESETS,
   GRADIENT_PALETTES,
@@ -618,6 +619,9 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
 
           {/* TAB CONTENTS SCROLL AREA */}
           <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {(activeTab === 'blocks' || activeTab === 'services' || activeTab === 'forms') && (
+              <EditorContentPanels tab={activeTab} biosite={biosite} onChanged={syncCurrentBiosite} />
+            )}
             {/* 1. NEGÓCIO / IDENTIDADE */}
             {activeTab === 'identity' && (
               <div className="space-y-4">

@@ -237,7 +237,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
             const isPublished = b.status === 'published';
             const progress = StorageService.calculateBiositeProgress(b);
             const isChecklistOpen = expandedChecklistId === b.id;
-            const salePrice = b.salePrice || 120000;
+            const salePrice = b.salePrice || 0;
             const soldPrice = b.soldPrice || salePrice;
             const isSold = b.saleStatus === 'sold';
             const isNegotiating = b.saleStatus === 'negotiating';

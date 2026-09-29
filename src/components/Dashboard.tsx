@@ -387,25 +387,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </p>
                         )}
 
-                        {/* Pricing & Commercial Badge */}
-                        <div className="mt-3.5 flex items-center justify-between rounded-xl bg-[#F7F9FC] p-2.5 border border-[#EEF3F8]">
-                          <div>
-                            <span className="text-[10px] uppercase font-bold text-[#667085] block">
-                              {isSold ? 'Valor Vendido' : 'Preço de Venda'}
-                            </span>
-                            <span className={`text-xs font-black ${isSold ? 'text-emerald-700' : 'text-[#0B1F3A]'}`}>
-                              {(isSold ? soldPrice : salePrice) != null ? formatKz((isSold ? soldPrice : salePrice) as number) : 'Não definido'}
-                            </span>
-                          </div>
-
-                          <button
-                            onClick={() => setSelectedSellBiosite(b)}
-                            className="text-[11px] font-bold text-[#155EEF] hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <DollarSign className="h-3 w-3" />
-                            <span>{isSold ? 'Ver Venda' : 'Vender'}</span>
-                          </button>
-                        </div>
                       </div>
 
                       {/* Card Actions Bottom */}

@@ -100,24 +100,6 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           <span className="sr-only">Novo biosite</span>
         </button>
 
-        {/* 4. VENDAS & FATURAMENTO */}
-        <button
-          id="dock-tab-vendas"
-          onClick={() => onSelectTab('vendas')}
-          className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all cursor-pointer ${
-            activeTab === 'vendas'
-              ? 'text-emerald-700 font-bold'
-              : 'hover:text-[#0B1F3A] text-[#667085]'
-          }`}
-        >
-          <div className="relative">
-            <DollarSign className="h-5 w-5" />
-          </div>
-          <span className="text-[10px] tracking-tight">Vendas</span>
-          {activeTab === 'vendas' && (
-            <span className="absolute -bottom-1 h-1 w-5 rounded-full bg-emerald-600" />
-          )}
-        </button>
 
         {/* 5. CONFIGURAÇÕES / CONTA */}
         <button

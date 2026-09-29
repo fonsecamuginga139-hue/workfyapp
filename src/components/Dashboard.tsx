@@ -161,18 +161,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span>Leads & Reservas</span>
               </button>
 
-              {/* TAB 3: VENDAS & FATURAMENTO */}
-              <button
-                onClick={() => setActiveTab('vendas')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'vendas'
-                    ? 'bg-emerald-700 text-white shadow-xs font-black'
-                    : 'text-[#667085] hover:text-[#0B1F3A]'
-                }`}
-              >
-                <DollarSign className="h-4 w-4" />
-                <span>Vendas & Faturamento</span>
-              </button>
             </nav>
           </div>
 
@@ -228,59 +216,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
         >
           <span>Leads</span>
         </button>
-        <button
-          onClick={() => setActiveTab('vendas')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap flex items-center gap-1 cursor-pointer ${
-            activeTab === 'vendas' ? 'bg-emerald-700 text-white font-black' : 'text-[#667085]'
-          }`}
-        >
-          <span>Vendas</span>
-
-        </button>
       </div>
 
       {/* MAIN BODY CONTENT */}
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        {/* VIEW 1: SALES DASHBOARD */}
-        {activeTab === 'vendas' && (
-          <SalesDashboard
-            userBiosites={biosites}
-            onRefresh={reloadBiosites}
-            onNavigate={onNavigate}
-            onOpenManager={() => setActiveTab('manager')}
-          />
-        )}
-
-        {/* VIEW 2: BIOSITE MANAGER */}
-        {activeTab === 'manager' && (
+        {/* BIOSITE MANAGER */}
+        {(activeTab === 'manager' || activeTab === 'vendas') && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#EEF3F8]">
-              <div>
-                <h1 className="text-xl font-black text-[#0B1F3A] tracking-tight flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-emerald-600" />
-                  <span>Gerenciador de Biosites & Vendas</span>
-                </h1>
-                <p className="text-xs text-[#667085] mt-0.5">
-                  Acompanhe o que está acontecendo em cada biosite, progresso de entrega, valores em Kz e follow-up.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveTab('vendas')}
-                  className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-black text-white shadow-xs hover:bg-emerald-800 transition-all cursor-pointer"
-                >
-                  <DollarSign className="h-3.5 w-3.5" />
-                  <span>Ver Painel de Vendas</span>
-                </button>
-              </div>
+            <div className="pb-3 border-b border-[#EEF3F8]">
+              <h1 className="text-xl font-black text-[#0B1F3A] tracking-tight flex items-center gap-2">
+                <Activity className="h-5 w-5 text-[#155EEF]" />
+                <span>Gerenciador de Biosites</span>
+              </h1>
+              <p className="text-xs text-[#667085] mt-0.5">
+                Acompanhe o estado, o progresso e a entrega de cada biosite.
+              </p>
             </div>
 
             <BiositeManager
               biosites={biosites}
               onRefresh={reloadBiosites}
               onNavigate={onNavigate}
-              onGoToFuturisticDashboard={() => setActiveTab('vendas')}
+              onGoToFuturisticDashboard={() => setActiveTab('manager')}
             />
           </div>
         )}
@@ -430,25 +387,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </p>
                         )}
 
-                        {/* Pricing & Commercial Badge */}
-                        <div className="mt-3.5 flex items-center justify-between rounded-xl bg-[#F7F9FC] p-2.5 border border-[#EEF3F8]">
-                          <div>
-                            <span className="text-[10px] uppercase font-bold text-[#667085] block">
-                              {isSold ? 'Valor Vendido' : 'Preço de Venda'}
-                            </span>
-                            <span className={`text-xs font-black ${isSold ? 'text-emerald-700' : 'text-[#0B1F3A]'}`}>
-                              {(isSold ? soldPrice : salePrice) != null ? formatKz((isSold ? soldPrice : salePrice) as number) : 'Não definido'}
-                            </span>
-                          </div>
-
-                          <button
-                            onClick={() => setSelectedSellBiosite(b)}
-                            className="text-[11px] font-bold text-[#155EEF] hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <DollarSign className="h-3 w-3" />
-                            <span>{isSold ? 'Ver Venda' : 'Vender'}</span>
-                          </button>
-                        </div>
                       </div>
 
                       {/* Card Actions Bottom */}
@@ -527,7 +465,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         isOpen={Boolean(selectedSellBiosite)}
         onClose={() => setSelectedSellBiosite(null)}
         onUpdated={() => reloadBiosites()}
-        onGoToDashboard={() => setActiveTab('vendas')}
+        onGoToDashboard={() => setActiveTab('manager')}
       />
 
       {/* QR MODAL */}
@@ -542,15 +480,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* PERSISTENT BOTTOM NAVIGATION DOCK */}
       <BottomNavigation
-        activeTab={
-          activeTab === 'biosites'
-            ? 'biosites'
-            : activeTab === 'manager'
-            ? 'manager'
-            : activeTab === 'inbox'
-            ? 'inbox'
-            : 'vendas'
-        }
+        activeTab={activeTab === 'vendas' ? 'manager' : activeTab}
         onSelectTab={handleDockSelect}
         activeCount={activeCount}
         soldCount={soldCount}

@@ -141,13 +141,6 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
               {formatKz(totalSoldKz)}
             </span>
           </div>
-          <button
-            onClick={onGoToFuturisticDashboard}
-            className="mt-2 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
-          >
-            <span>Ver no painel de vendas</span>
-            <ArrowUpRight className="h-3 w-3" />
-          </button>
         </div>
 
         {/* EM NEGOCIAÇÃO / PIPELINE */}

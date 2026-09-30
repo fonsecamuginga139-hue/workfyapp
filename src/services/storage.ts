@@ -519,6 +519,16 @@ export const StorageService = {
     return { leads: leads || [], bookings: bookings || [] };
   },
 
+  async setLeadStatus(id: string, status: 'new' | 'contacted' | 'closed') {
+    const { error } = await supabase.from('biosite_leads' as any).update({ status } as any).eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  async setBookingStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled' | 'completed') {
+    const { error } = await supabase.from('biosite_bookings' as any).update({ status } as any).eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
   async createService(biositeId: string, service: Omit<BiositeService, 'id' | 'biositeId'>) {
     if (!currentUser) throw new Error('Sessão expirada.');
     const { data, error } = await supabase.from('biosite_services' as any).insert({ biosite_id: biositeId, owner_id: currentUser.id, name: service.name, description: service.description, price: service.price, promotional_price: service.promotionalPrice, duration_minutes: service.durationMinutes, media_type: service.mediaType, media_url: service.mediaUrl, cta_type: service.ctaType, cta_label: service.ctaLabel, featured: service.featured, available: service.available, position: service.position } as any).select('*').single();

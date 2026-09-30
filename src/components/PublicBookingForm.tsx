@@ -42,7 +42,7 @@ export const PublicBookingForm: React.FC<PublicBookingFormProps> = ({ slug, serv
 
   if (state === 'sent') {
     return (
-      <div className="mt-3 rounded-lg border p-4 text-sm" style={{ backgroundColor: cardColor, color: textColor }}>
+      <div className="mt-3 w-full basis-full rounded-lg border p-4 text-sm" style={{ backgroundColor: cardColor, color: textColor }}>
         <CalendarCheck className="mb-2 h-5 w-5" />
         <strong>Reserva recebida.</strong>
         <p className="mt-1 text-xs opacity-70">O negócio recebeu o pedido e vai confirmar o horário.</p>
@@ -51,13 +51,13 @@ export const PublicBookingForm: React.FC<PublicBookingFormProps> = ({ slug, serv
   }
 
   return (
-    <form onSubmit={submit} className="mt-3 space-y-2 rounded-lg border p-3" style={{ backgroundColor: cardColor, color: textColor }}>
+    <form onSubmit={submit} className="mt-3 w-full basis-full space-y-2 rounded-lg border p-3" style={{ backgroundColor: cardColor, color: textColor }}>
       <input value={values.name} onChange={(e) => setValues({ ...values, name: e.target.value })} required placeholder="Nome" className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm" />
       <input value={values.phone} onChange={(e) => setValues({ ...values, phone: e.target.value })} required placeholder="Telefone / WhatsApp" className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm" />
       <input type="email" value={values.email} onChange={(e) => setValues({ ...values, email: e.target.value })} placeholder="E-mail opcional" className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm" />
-      <div className="grid grid-cols-2 gap-2">
-        <input type="date" value={values.date} onChange={(e) => setValues({ ...values, date: e.target.value })} required className="rounded-lg border bg-transparent px-3 py-2 text-sm" />
-        <input type="time" value={values.time} onChange={(e) => setValues({ ...values, time: e.target.value })} required className="rounded-lg border bg-transparent px-3 py-2 text-sm" />
+      <div className="grid grid-cols-2 gap-2 min-w-0">
+        <input type="date" value={values.date} onChange={(e) => setValues({ ...values, date: e.target.value })} required className="w-full min-w-0 appearance-none rounded-lg border bg-transparent px-2 py-2 text-sm" />
+        <input type="time" value={values.time} onChange={(e) => setValues({ ...values, time: e.target.value })} required className="w-full min-w-0 appearance-none rounded-lg border bg-transparent px-2 py-2 text-sm" />
       </div>
       <textarea value={values.notes} onChange={(e) => setValues({ ...values, notes: e.target.value })} placeholder="Observações" rows={2} className="w-full rounded-lg border bg-transparent px-3 py-2 text-sm" />
       {state === 'error' && <p className="text-xs text-red-600">Verifique os dados e tente novamente.</p>}

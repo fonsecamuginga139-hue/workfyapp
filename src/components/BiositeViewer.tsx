@@ -1056,7 +1056,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                 {service.mediaUrl && (service.mediaType === 'video' ? <video controls preload="none" playsInline className="w-full rounded-lg" src={service.mediaUrl} /> : <img loading="lazy" className="w-full rounded-lg object-cover" src={service.mediaUrl} alt={service.name} />)}
                 <strong className="block">{service.name}</strong>
                 {service.description && <p className="text-xs opacity-75">{service.description}</p>}
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-sm font-semibold">{service.promotionalPrice != null ? formatKz(service.promotionalPrice) : service.price != null ? formatKz(service.price) : ''}</span>
                   {service.ctaType === 'booking' && <PublicBookingForm slug={biosite.slug} service={service} color={buttonBgColor} cardColor={cardBgColor} textColor={textColor} />}
                   {service.ctaType === 'whatsapp' && whatsappConfig.phoneNumber && <a href={generateWhatsAppLink(whatsappConfig.phoneNumber, `Olá! Gostaria de saber mais sobre ${service.name}.`)} target="_blank" rel="noopener noreferrer" className="text-sm font-bold underline">{service.ctaLabel}</a>}

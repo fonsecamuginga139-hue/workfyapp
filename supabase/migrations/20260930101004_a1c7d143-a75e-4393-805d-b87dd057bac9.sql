@@ -1,0 +1,2 @@
+ALTER TABLE public.biosite_events DROP CONSTRAINT IF EXISTS biosite_events_type_check;
+ALTER TABLE public.biosite_events ADD CONSTRAINT biosite_events_type_check CHECK (type IN ('page_view','view','whatsapp_click','whatsapp','phone_click','call','social_click','product_click','product','service_click','booking_click','appointment','form_submit','location_click','location','button_click'));

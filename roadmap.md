@@ -1,10 +1,14 @@
-# Roadmap — Upgrade profundo Workfy
+# Roadmap (plano aprovado 2026-09-29)
 
-- [x] Auditar integralmente requisitos, código, rotas, experiência mobile e segurança
-- [x] Estruturar banco, RLS, uploads, leads, reservas, entrega e acesso do cliente
-- [x] Expandir modelos e camada de dados sem conteúdo fictício
-- [ ] Evoluir editor e preview profissional mobile-first
-- [x] Evoluir biosite público, mídia, formulários, reservas, SEO e analytics
-- [ ] Profissionalizar dashboard do negócio e fluxo freelancer/cliente
-- [x] Criar vitrine opt-in na landing com mockups modernos e rotação automática
-- [ ] Auditar design, responsividade, rotas, build, segurança e fluxos reais
+- [x] Editor: separadores Blocos, Serviços e Leads funcionais
+- [x] Painel: separador Leads e reservas com estado, pesquisa, filtro e resposta por WhatsApp
+- [x] Vendas retirado do menu do painel
+- [ ] Fase 1: arrastar blocos, bloco Hero, fontes, fundo, vidro, figurinhas, bloco de botões
+- [ ] Fase 2: vídeo no catálogo, editar serviços, links de mídia sem expirar
+- [ ] Fase 3: telefone separado, WhatsApp fixo, construtor de formulário
+- [ ] Fase 4: horários livres calculados
+- [ ] Fase 5: analytics por período e taxa de conversão real
+- [ ] Fase 6: entrega ao cliente (chave, página do cliente, histórico)
+- [ ] Fase 7: selo configurável, SEO/partilha no servidor
+- [ ] Fase 8: landing mais sóbria, desempenho, avisos de segurança, auditoria
+- [ ] Decisão pendente: retirar vendas também dentro do Gerenciador

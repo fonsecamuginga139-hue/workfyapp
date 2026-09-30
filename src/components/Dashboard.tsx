@@ -26,6 +26,7 @@ import { BottomNavigation, ActiveNavTab } from './BottomNavigation';
 import { BiositeManager } from './BiositeManager';
 import { SalesDashboard } from './SalesDashboard';
 import { SellBiositeModal } from './SellBiositeModal';
+import { InboxPanel } from './InboxPanel';
 
 interface DashboardProps {
   user: User;
@@ -240,6 +241,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               onGoToFuturisticDashboard={() => setActiveTab('manager')}
             />
           </div>
+        )}
+
+        {activeTab === 'inbox' && (
+          <InboxPanel inbox={inbox} biosites={biosites} onReload={() => StorageService.fetchInbox().then(setInbox)} />
         )}
 
         {/* VIEW 3: MEUS BIOSITES (GRID & TEMPLATES) */}

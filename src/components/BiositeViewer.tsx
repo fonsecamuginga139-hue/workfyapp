@@ -26,6 +26,7 @@ import { formatKz, generateWhatsAppLink } from '../services/storage';
 import { THEME_PRESETS } from '../constants/themes';
 import { PublicLeadForm } from './PublicLeadForm';
 import { PublicBookingForm } from './PublicBookingForm';
+import { BlockRenderer } from './BlockRenderer';
 
 export function formatSocialUrl(url?: string, platform?: string): string {
   if (!url) return '';
@@ -1068,14 +1069,8 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
         {(biosite.formsData || []).filter((form) => form.enabled).map((form) => (
           <div key={form.id} className="px-4 py-3"><PublicLeadForm form={form} slug={biosite.slug} color={buttonBgColor} cardColor={cardBgColor} textColor={textColor} /></div>
         ))}
-        {(biosite.blocks || []).filter((block) => block.enabled).map((block) => (
-          <section key={block.id} className="px-4 py-4" style={{ color: textColor }}>
-            {block.type === 'text' && <p className="whitespace-pre-wrap">{String(block.content.text || '')}</p>}
-            {block.type === 'image' && typeof block.content.url === 'string' && <img loading="lazy" className="w-full rounded-lg" src={block.content.url} alt={String(block.content.alt || '')} />}
-            {block.type === 'video' && typeof block.content.url === 'string' && <video controls preload="none" playsInline className="w-full rounded-lg" src={block.content.url} />}
-            {block.type === 'music' && typeof block.content.url === 'string' && /^https:\/\/open\.spotify\.com\/(track|album|playlist)\/[\w]+/.test(block.content.url) && <iframe title="Spotify" loading="lazy" src={block.content.url.replace('open.spotify.com/', 'open.spotify.com/embed/')} className="w-full h-40 border-0" />}
-            {block.type === 'spacer' && <div style={{ height: block.size === 'large' ? 64 : block.size === 'compact' ? 16 : 32 }} />}
-          </section>
+        {[...(biosite.blocks || [])].filter((block) => block.enabled).sort((a, b) => a.position - b.position).map((block) => (
+          <BlockRenderer key={block.id} block={block} ctx={{ textColor, cardColor: cardBgColor, buttonColor: buttonBgColor }} />
         ))}
 
         {/* FOOTER BRANDING */}

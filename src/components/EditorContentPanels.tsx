@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
+import { Copy, Eye, EyeOff, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { DndContext, PointerSensor, TouchSensor, KeyboardSensor, closestCenter, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Biosite, BiositeBlock, BiositeForm, BiositeService } from '../types';
 import { StorageService } from '../services/storage';
 import { ImageUploader } from './ImageUploader';
@@ -7,7 +10,9 @@ import { ImageUploader } from './ImageUploader';
 type Props = { tab: 'blocks' | 'services' | 'forms'; biosite: Biosite; onChanged: () => void };
 
 const BLOCK_TYPES: Array<{ id: BiositeBlock['type']; label: string }> = [
-  { id: 'text', label: 'Texto' },
+  { id: 'hero', label: 'Banner (Hero)' },
+  { id: 'text', label: 'Título / Texto' },
+  { id: 'buttons', label: 'Botões' },
   { id: 'image', label: 'Imagem' },
   { id: 'video', label: 'Vídeo' },
   { id: 'music', label: 'Música (Spotify)' },
@@ -41,105 +46,176 @@ export function EditorContentPanels({ tab, biosite, onChanged }: Props) {
 
 type PanelProps = { biosite: Biosite; busy: boolean; run: (fn: () => Promise<unknown>) => Promise<void> };
 
+const defaultContent = (type: BiositeBlock['type']): Record<string, unknown> => {
+  switch (type) {
+    case 'hero': return { title: '', subtitle: '', url: '', overlay: 35, buttonLabel: '', buttonUrl: '' };
+    case 'text': return { text: '', fontSize: 'md', weight: 'normal' };
+    case 'buttons': return { items: [{ label: '', url: '', style: 'solid', shape: 'pill', enabled: true }] };
+    default: return { url: '' };
+  }
+};
+
 function BlocksPanel({ biosite, busy, run }: PanelProps) {
-  const [type, setType] = useState<BiositeBlock['type']>('text');
-  const [text, setText] = useState('');
-  const [url, setUrl] = useState('');
+  const [type, setType] = useState<BiositeBlock['type']>('hero');
   const blocks = [...(biosite.blocks || [])].sort((a, b) => a.position - b.position);
+  const [order, setOrder] = useState<string[] | null>(null);
+  const ordered = order ? order.map((id) => blocks.find((b) => b.id === id)).filter(Boolean) as BiositeBlock[] : blocks;
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
-  const add = () => {
-    if (type === 'text' ? !text.trim() : type !== 'spacer' && !url.trim()) return;
-    const content = type === 'text' ? { text: text.trim() } : type === 'spacer' ? {} : { url: url.trim() };
-    return run(async () => {
-      await StorageService.saveBlock(biosite.id, { id: `block-${Date.now()}`, biositeId: biosite.id, ownerId: biosite.userId, type, enabled: true, size: 'standard', position: blocks.length + 1, content, appearance: {} });
-      setText(''); setUrl('');
-    });
-  };
-
-  const move = (index: number, dir: -1 | 1) => run(async () => {
-    const a = blocks[index]; const b = blocks[index + dir];
-    if (!a || !b) return;
-    await StorageService.saveBlock(biosite.id, { ...a, position: b.position });
-    await StorageService.saveBlock(biosite.id, { ...b, position: a.position });
+  const add = () => run(async () => {
+    await StorageService.saveBlock(biosite.id, { id: `block-${Date.now()}`, biositeId: biosite.id, ownerId: biosite.userId, type, enabled: true, size: 'standard', position: blocks.length + 1, content: defaultContent(type), appearance: { align: type === 'hero' ? 'center' : 'left', radius: 'md' } });
   });
+
+  const onDragEnd = (e: DragEndEvent) => {
+    if (!e.over || e.active.id === e.over.id) return;
+    const ids = ordered.map((b) => b.id);
+    const next = arrayMove(ids, ids.indexOf(String(e.active.id)), ids.indexOf(String(e.over.id)));
+    setOrder(next);
+    run(async () => {
+      for (let i = 0; i < next.length; i++) {
+        const b = blocks.find((x) => x.id === next[i]);
+        if (b && b.position !== i + 1) await StorageService.saveBlock(biosite.id, { ...b, position: i + 1 });
+      }
+    }).finally(() => setOrder(null));
+  };
 
   return (
     <>
       <section className="rounded-2xl border border-[#E4E7EC] bg-white p-4 space-y-3">
         <h3 className="text-sm font-bold text-[#0B1F3A]">Adicionar bloco</h3>
-        <div>
-          <span className={label}>Tipo</span>
-          <select className={input} value={type} onChange={(e) => setType(e.target.value as BiositeBlock['type'])}>
-            {BLOCK_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
-        </div>
-        {type === 'text' && <textarea className={input} rows={3} maxLength={1500} placeholder="Escreva o texto" value={text} onChange={(e) => setText(e.target.value)} />}
-        {(type === 'image' || type === 'video') && (
-          <ImageUploader label={type === 'image' ? 'Imagem' : 'Vídeo'} value={url} onChange={setUrl} acceptVideo={type === 'video'} aspectRatio="wide" />
-        )}
-        {type === 'music' && <input className={input} placeholder="Link do Spotify" value={url} onChange={(e) => setUrl(e.target.value)} />}
-        <button type="button" className={primary} disabled={busy} onClick={add}><Plus className="h-4 w-4" />Adicionar</button>
+        <select className={input} value={type} onChange={(e) => setType(e.target.value as BiositeBlock['type'])}>
+          {BLOCK_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+        <button type="button" className={primary} disabled={busy} onClick={add}><Plus className="h-4 w-4" />Adicionar e editar</button>
       </section>
 
       <section className="space-y-2">
         <h3 className="text-sm font-bold text-[#0B1F3A]">Blocos ({blocks.length})</h3>
+        {blocks.length > 1 && <p className="text-xs text-[#667085]">Arraste pela pega para mudar a ordem.</p>}
         {blocks.length === 0 && <p className="text-xs text-[#667085]">Ainda não há blocos neste biosite.</p>}
-        {blocks.map((block, i) => (
-          <BlockRow key={block.id} block={block} index={i} total={blocks.length} busy={busy}
-            onMove={(d) => move(i, d)}
-            onSave={(patch) => run(() => StorageService.saveBlock(biosite.id, { ...block, ...patch }))}
-            onDuplicate={() => run(() => StorageService.saveBlock(biosite.id, { ...block, id: `block-${Date.now()}`, position: blocks.length + 1 }))}
-            onDelete={() => { if (confirm('Remover este bloco?')) run(() => StorageService.deleteBlock(biosite.id, block.id)); }}
-          />
-        ))}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={ordered.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+            {ordered.map((block) => (
+              <BlockRow key={block.id} block={block} busy={busy}
+                onSave={(patch) => run(() => StorageService.saveBlock(biosite.id, { ...block, ...patch }))}
+                onDuplicate={() => run(() => StorageService.saveBlock(biosite.id, { ...block, id: `block-${Date.now()}`, position: blocks.length + 1 }))}
+                onDelete={() => { if (confirm('Remover este bloco?')) run(() => StorageService.deleteBlock(biosite.id, block.id)); }}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </section>
     </>
   );
 }
 
-function BlockRow({ block, index, total, busy, onMove, onSave, onDuplicate, onDelete }: {
-  block: BiositeBlock; index: number; total: number; busy: boolean;
-  onMove: (d: -1 | 1) => void; onSave: (p: Partial<BiositeBlock>) => void; onDuplicate: () => void; onDelete: () => void;
+const summary = (b: BiositeBlock) => {
+  const c = b.content as any;
+  if (b.type === 'hero') return c.title || c.url || '';
+  if (b.type === 'buttons') return (c.items || []).map((i: any) => i.label).filter(Boolean).join(' · ');
+  return c.text || c.url || '';
+};
+
+function Seg({ value, options, onChange }: { value: string; options: Array<[string, string]>; onChange: (v: string) => void }) {
+  return (
+    <div className="flex rounded-xl border border-[#E4E7EC] p-0.5">
+      {options.map(([v, l]) => (
+        <button key={v} type="button" onClick={() => onChange(v)} className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-semibold ${value === v ? 'bg-[#0066FF] text-white' : 'text-[#475467]'}`}>{l}</button>
+      ))}
+    </div>
+  );
+}
+
+function BlockRow({ block, busy, onSave, onDuplicate, onDelete }: {
+  block: BiositeBlock; busy: boolean;
+  onSave: (p: Partial<BiositeBlock>) => void; onDuplicate: () => void; onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(String((block.content as any)?.text ?? (block.content as any)?.url ?? ''));
+  const [c, setC] = useState<Record<string, any>>({ ...(block.content as any) });
+  const [a, setA] = useState<Record<string, any>>({ ...(block.appearance as any) });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
   const typeLabel = BLOCK_TYPES.find((t) => t.id === block.type)?.label || block.type;
-  const key = block.type === 'text' ? 'text' : 'url';
+  const set = (k: string, v: unknown) => setC((p) => ({ ...p, [k]: v }));
+  const setAp = (k: string, v: unknown) => setA((p) => ({ ...p, [k]: v }));
+  const items: any[] = Array.isArray(c.items) ? c.items : [];
+  const setItem = (i: number, k: string, v: unknown) => set('items', items.map((it, j) => (j === i ? { ...it, [k]: v } : it)));
 
   return (
-    <div className={`rounded-2xl border bg-white p-3 ${block.enabled ? 'border-[#E4E7EC]' : 'border-dashed border-[#D0D5DD] opacity-70'}`}>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 10 : undefined }}
+      className={`rounded-2xl border bg-white p-3 ${isDragging ? 'shadow-lg' : ''} ${block.enabled ? 'border-[#E4E7EC]' : 'border-dashed border-[#D0D5DD] opacity-70'}`}>
       <div className="flex items-center gap-2">
+        <button type="button" aria-label="Arrastar" className={`${iconBtn} cursor-grab touch-none`} {...attributes} {...listeners}><GripVertical className="h-4 w-4" /></button>
         <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setOpen(!open)}>
           <p className="text-sm font-semibold text-[#0B1F3A]">{typeLabel}</p>
-          <p className="truncate text-xs text-[#667085]">{value || '—'}</p>
+          <p className="truncate text-xs text-[#667085]">{summary(block) || 'Toque para editar'}</p>
         </button>
-        <button type="button" aria-label="Subir" className={iconBtn} disabled={busy || index === 0} onClick={() => onMove(-1)}><ArrowUp className="h-4 w-4" /></button>
-        <button type="button" aria-label="Descer" className={iconBtn} disabled={busy || index === total - 1} onClick={() => onMove(1)}><ArrowDown className="h-4 w-4" /></button>
-      </div>
-      {open && (
-        <div className="mt-3 space-y-3 border-t border-[#F2F4F7] pt-3">
-          {block.type === 'text' && <textarea className={input} rows={3} value={value} onChange={(e) => setValue(e.target.value)} />}
-          {(block.type === 'image' || block.type === 'video') && <ImageUploader label="Ficheiro" value={value} onChange={setValue} acceptVideo={block.type === 'video'} aspectRatio="wide" />}
-          {block.type === 'music' && <input className={input} value={value} onChange={(e) => setValue(e.target.value)} />}
-          <div>
-            <span className={label}>Tamanho</span>
-            <select className={input} value={block.size} onChange={(e) => onSave({ size: e.target.value as BiositeBlock['size'] })}>
-              <option value="compact">Compacto</option><option value="standard">Normal</option><option value="large">Grande</option>
-            </select>
-          </div>
-          {block.type !== 'spacer' && (
-            <button type="button" className={primary} disabled={busy} onClick={() => onSave({ content: { ...block.content, [key]: value.trim() } })}>Guardar alterações</button>
-          )}
-        </div>
-      )}
-      <div className="mt-2 flex gap-2">
         <button type="button" aria-label={block.enabled ? 'Ocultar' : 'Mostrar'} className={iconBtn} disabled={busy} onClick={() => onSave({ enabled: !block.enabled })}>{block.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
         <button type="button" aria-label="Duplicar" className={iconBtn} disabled={busy} onClick={onDuplicate}><Copy className="h-4 w-4" /></button>
         <button type="button" aria-label="Remover" className={iconBtn} disabled={busy} onClick={onDelete}><Trash2 className="h-4 w-4" /></button>
       </div>
+      {open && (
+        <div className="mt-3 space-y-3 border-t border-[#F2F4F7] pt-3">
+          {block.type === 'hero' && (<>
+            <ImageUploader label="Imagem ou vídeo de fundo" value={c.url || ''} onChange={(v) => set('url', v)} acceptVideo aspectRatio="wide" />
+            <input className={input} maxLength={90} placeholder="Título" value={c.title || ''} onChange={(e) => set('title', e.target.value)} />
+            <input className={input} maxLength={180} placeholder="Subtítulo" value={c.subtitle || ''} onChange={(e) => set('subtitle', e.target.value)} />
+            <div className="grid grid-cols-2 gap-2">
+              <input className={input} maxLength={40} placeholder="Texto do botão" value={c.buttonLabel || ''} onChange={(e) => set('buttonLabel', e.target.value)} />
+              <input className={input} placeholder="https://..." value={c.buttonUrl || ''} onChange={(e) => set('buttonUrl', e.target.value)} />
+            </div>
+            <div><span className={label}>Escurecimento: {c.overlay ?? 35}%</span><input type="range" min={0} max={85} value={c.overlay ?? 35} onChange={(e) => set('overlay', Number(e.target.value))} className="w-full" /></div>
+          </>)}
+          {block.type === 'text' && (<>
+            <textarea className={input} rows={3} maxLength={1500} value={c.text || ''} onChange={(e) => set('text', e.target.value)} placeholder="Escreva o texto" />
+            <div><span className={label}>Tamanho do texto</span><Seg value={c.fontSize || 'md'} onChange={(v) => set('fontSize', v)} options={[['sm', 'P'], ['md', 'M'], ['lg', 'G'], ['xl', 'Título']]} /></div>
+            <div><span className={label}>Peso</span><Seg value={c.weight || 'normal'} onChange={(v) => set('weight', v)} options={[['normal', 'Normal'], ['semibold', 'Médio'], ['bold', 'Negrito']]} /></div>
+            <div className="flex items-center gap-2"><span className={label}>Cor</span><input type="color" value={c.color || '#0B1F3A'} onChange={(e) => set('color', e.target.value)} className="h-8 w-12 rounded border" />{c.color && <button type="button" className="text-xs underline text-[#667085]" onClick={() => set('color', undefined)}>Usar cor do tema</button>}</div>
+          </>)}
+          {block.type === 'buttons' && (<>
+            {items.map((it, i) => (
+              <div key={i} className="space-y-2 rounded-xl border border-[#F2F4F7] p-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <input className={input} maxLength={50} placeholder="Texto" value={it.label || ''} onChange={(e) => setItem(i, 'label', e.target.value)} />
+                  <input className={input} placeholder="https:// ou tel:" value={it.url || ''} onChange={(e) => setItem(i, 'url', e.target.value)} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input type="color" aria-label="Cor" value={it.color || '#0066FF'} onChange={(e) => setItem(i, 'color', e.target.value)} className="h-8 w-10 rounded border" />
+                  <select className="rounded-lg border px-2 py-1.5 text-xs" value={it.style || 'solid'} onChange={(e) => setItem(i, 'style', e.target.value)}><option value="solid">Cheio</option><option value="outline">Contorno</option></select>
+                  <select className="rounded-lg border px-2 py-1.5 text-xs" value={it.shape || 'pill'} onChange={(e) => setItem(i, 'shape', e.target.value)}><option value="pill">Redondo</option><option value="rounded">Suave</option><option value="square">Reto</option></select>
+                  <button type="button" className={iconBtn} aria-label="Ocultar botão" onClick={() => setItem(i, 'enabled', it.enabled === false)}>{it.enabled === false ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+                  <button type="button" className={iconBtn} aria-label="Remover botão" onClick={() => set('items', items.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></button>
+                </div>
+              </div>
+            ))}
+            {items.length < 8 && <button type="button" className="text-xs font-semibold text-[#0066FF]" onClick={() => set('items', [...items, { label: '', url: '', style: 'solid', shape: 'pill', enabled: true }])}>+ Adicionar botão</button>}
+          </>)}
+          {(block.type === 'image' || block.type === 'video') && <ImageUploader label="Ficheiro" value={c.url || ''} onChange={(v) => set('url', v)} acceptVideo={block.type === 'video'} aspectRatio="wide" />}
+          {block.type === 'video' && <label className="flex items-center gap-2 text-sm text-[#344054]"><input type="checkbox" checked={!!c.autoplay} onChange={(e) => set('autoplay', e.target.checked)} />Tocar sozinho, sem som e em loop</label>}
+          {block.type === 'music' && <input className={input} placeholder="https://open.spotify.com/track/..." value={c.url || ''} onChange={(e) => set('url', e.target.value)} />}
+
+          <div><span className={label}>Tamanho</span><Seg value={block.size} onChange={(v) => onSave({ size: v as BiositeBlock['size'] })} options={[['compact', 'Compacto'], ['standard', 'Normal'], ['large', 'Grande']]} /></div>
+          {block.type !== 'spacer' && (<>
+            <div><span className={label}>Alinhamento</span><Seg value={a.align || 'left'} onChange={(v) => setAp('align', v)} options={[['left', 'Esquerda'], ['center', 'Centro'], ['right', 'Direita']]} /></div>
+            <div><span className={label}>Cantos</span><Seg value={a.radius || 'md'} onChange={(v) => setAp('radius', v)} options={[['none', 'Retos'], ['sm', 'Leves'], ['md', 'Médios'], ['lg', 'Grandes']]} /></div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#344054]">
+              <label className="flex items-center gap-2"><input type="checkbox" checked={!!a.card} onChange={(e) => setAp('card', e.target.checked)} />Fundo de cartão</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={!!a.border} onChange={(e) => setAp('border', e.target.checked)} />Borda</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={!!a.shadow} onChange={(e) => setAp('shadow', e.target.checked)} />Sombra</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={!!a.glass} onChange={(e) => setAp('glass', e.target.checked)} />Efeito vidro</label>
+            </div>
+            {a.glass && <div><span className={label}>Intensidade do vidro: {a.glassIntensity ?? 40}%</span><input type="range" min={10} max={80} value={a.glassIntensity ?? 40} onChange={(e) => setAp('glassIntensity', Number(e.target.value))} className="w-full" /></div>}
+            <button type="button" className={primary} disabled={busy} onClick={() => onSave({ content: c, appearance: a })}>Guardar alterações</button>
+          </>)}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function ServicesPanel({ biosite, busy, run }: PanelProps) {
   const empty = { name: '', description: '', price: '', duration: '', mediaUrl: '', ctaType: 'booking' as BiositeService['ctaType'] };

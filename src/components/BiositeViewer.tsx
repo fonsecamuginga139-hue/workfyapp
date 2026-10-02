@@ -1070,7 +1070,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
           <div key={form.id} className="px-4 py-3"><PublicLeadForm form={form} slug={biosite.slug} color={buttonBgColor} cardColor={cardBgColor} textColor={textColor} /></div>
         ))}
         {[...(biosite.blocks || [])].filter((block) => block.enabled).sort((a, b) => a.position - b.position).map((block) => (
-          <BlockRenderer key={block.id} block={block} ctx={{ textColor, cardColor: cardBgColor, buttonColor: buttonBgColor }} />
+          <BlockRenderer key={block.id} block={block} ctx={{ textColor, cardColor: cardBgColor, buttonColor: buttonBgColor, buttonTextColor }} />
         ))}
 
         {/* FOOTER BRANDING */}

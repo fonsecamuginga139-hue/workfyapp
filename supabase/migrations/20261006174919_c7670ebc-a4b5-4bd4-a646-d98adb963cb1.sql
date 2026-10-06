@@ -1,0 +1,9 @@
+ALTER TABLE public.biosites
+  DROP COLUMN sale_status,
+  DROP COLUMN sale_price,
+  DROP COLUMN sold_price,
+  DROP COLUMN sold_date,
+  DROP COLUMN client_name,
+  DROP COLUMN client_phone,
+  DROP COLUMN client_notes,
+  DROP COLUMN monthly_fee;

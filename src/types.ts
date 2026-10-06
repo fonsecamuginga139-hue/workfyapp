@@ -146,8 +146,6 @@ export interface AnalyticsData {
   }>;
 }
 
-export type BiositeSaleStatus = 'available' | 'negotiating' | 'sold' | 'internal';
-
 export interface Biosite {
   id: string;
   userId: string;
@@ -167,15 +165,6 @@ export interface Biosite {
   servicesData?: BiositeService[];
   formsData?: BiositeForm[];
 
-  // Commercial & Sales Management (Follow de Vendas & Progresso)
-  saleStatus?: BiositeSaleStatus; // 'available' | 'negotiating' | 'sold' | 'internal'
-  salePrice?: number; // Preço estipulado de venda em Kz (ex: 120.000)
-  soldPrice?: number; // Preço final efetivo da venda em Kz
-  soldDate?: string; // Data ISO da venda
-  clientName?: string; // Nome do comprador / cliente
-  clientPhone?: string; // WhatsApp do comprador
-  clientNotes?: string; // Observações da negociação
-  monthlyFee?: number; // Manutenção mensal em Kz
   completionProgress?: number; // 0 - 100%
 
   appearance: {

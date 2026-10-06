@@ -75,14 +75,6 @@ function rowToBiosite(r: Row): Biosite {
       id: form.id, biositeId: form.biosite_id, title: form.title, description: form.description || '',
       submitLabel: form.submit_label || 'Enviar', fields: form.fields || [], enabled: form.enabled !== false, position: form.position || 0,
     })),
-    saleStatus: r.sale_status || 'internal',
-    salePrice: r.sale_price != null ? Number(r.sale_price) : undefined,
-    soldPrice: r.sold_price != null ? Number(r.sold_price) : undefined,
-    soldDate: r.sold_date || undefined,
-    clientName: r.client_name || undefined,
-    clientPhone: r.client_phone || undefined,
-    clientNotes: r.client_notes || undefined,
-    monthlyFee: r.monthly_fee != null ? Number(r.monthly_fee) : undefined,
     completionProgress: r.completion_progress || 0,
     appearance: r.appearance || {},
     sections: r.sections || {},
@@ -101,9 +93,7 @@ function biositeToRow(b: Partial<Biosite>): Row {
   const map: Array<[keyof Biosite, string]> = [
     ['slug', 'slug'], ['name', 'name'], ['category', 'category'],
     ['shortDescription', 'short_description'], ['logoUrl', 'logo_url'], ['coverUrl', 'cover_url'],
-    ['status', 'status'], ['saleStatus', 'sale_status'], ['salePrice', 'sale_price'],
-    ['soldPrice', 'sold_price'], ['soldDate', 'sold_date'], ['clientName', 'client_name'],
-    ['clientPhone', 'client_phone'], ['clientNotes', 'client_notes'], ['monthlyFee', 'monthly_fee'],
+    ['status', 'status'],
     ['completionProgress', 'completion_progress'], ['appearance', 'appearance'], ['sections', 'sections'],
     ['whatsappConfig', 'whatsapp_config'], ['actionButtonsData', 'action_buttons_data'],
     ['catalogCategories', 'catalog_categories'], ['catalogItems', 'catalog_items'],
@@ -389,7 +379,7 @@ export const StorageService = {
 
     const { data, error } = await supabase
       .from('biosites')
-      .insert({ ...biositeToRow(newBiosite), user_id: userId, sale_status: 'internal' } as any)
+      .insert({ ...biositeToRow(newBiosite), user_id: userId } as any)
       .select('*')
       .single();
     if (error || !data) throw new Error(error?.message || 'Falha ao criar biosite');
@@ -632,114 +622,4 @@ export const StorageService = {
     return { percentage, completedCount, totalCount, steps };
   },
 
-
-  setSalePrice(id: string, salePrice: number): Biosite | null {
-    return this.updateBiosite(id, { salePrice });
-  },
-
-  markAsSold(
-    id: string,
-    details: {
-      soldPrice: number;
-      clientName: string;
-      clientPhone?: string;
-      soldDate?: string;
-      clientNotes?: string;
-      monthlyFee?: number;
-    }
-  ): Biosite | null {
-    const biosite = this.getBiositeById(id);
-    if (!biosite) return null;
-    const b = this.updateBiosite(id, {
-      saleStatus: 'sold',
-      soldPrice: details.soldPrice,
-      salePrice: details.soldPrice,
-      clientName: details.clientName,
-      clientPhone: details.clientPhone || biosite.clientPhone,
-      clientNotes: details.clientNotes || biosite.clientNotes,
-      monthlyFee: details.monthlyFee ?? biosite.monthlyFee,
-      soldDate: details.soldDate || new Date().toISOString(),
-      status: 'published',
-    });
-    void this.saveNow(id);
-    return b;
-  },
-
-  updateSaleStatus(
-    id: string,
-    saleStatus: 'available' | 'negotiating' | 'sold' | 'internal',
-    extra?: Partial<Biosite>
-  ): Biosite | null {
-    const b = this.updateBiosite(id, { saleStatus, ...(extra || {}) });
-    void this.saveNow(id);
-    return b;
-  },
-
-  // Get commercial metrics for futuristic dashboard
-  getCommercialMetrics(_userId?: string) {
-    const biosites = this.getBiosites();
-
-    const soldBiosites = biosites.filter((b) => b.saleStatus === 'sold');
-    const negotiatingBiosites = biosites.filter((b) => b.saleStatus === 'negotiating');
-    const availableBiosites = biosites.filter((b) => b.saleStatus === 'available' || !b.saleStatus);
-    const internalBiosites = biosites.filter((b) => b.saleStatus === 'internal');
-
-    const totalSoldKz = soldBiosites.reduce((sum, b) => sum + (b.soldPrice || b.salePrice || 0), 0);
-    const pipelineKz = negotiatingBiosites.reduce((sum, b) => sum + (b.salePrice || 0), 0);
-    const availablePotentialKz = availableBiosites.reduce((sum, b) => sum + (b.salePrice || 0), 0);
-    const monthlyRecurringKz = soldBiosites.reduce((sum, b) => sum + (b.monthlyFee || 0), 0);
-
-    const publishedCount = biosites.filter((b) => b.status === 'published').length;
-    const draftCount = biosites.filter((b) => b.status === 'draft').length;
-    const totalViews = biosites.reduce((sum, b) => sum + (b.viewsCount || 0), 0);
-    const totalWhatsappClicks = biosites.reduce(
-      (sum, b) => sum + (b.analytics?.whatsappClicks || 0),
-      0
-    );
-
-    const averageTicketKz = soldBiosites.length > 0 ? Math.round(totalSoldKz / soldBiosites.length) : 0;
-    const conversionRate = biosites.length > 0 ? Math.round((soldBiosites.length / biosites.length) * 100) : 0;
-
-    // Timeline data for futuristic graph
-    // Sort sold biosites by soldDate
-    const sortedSold = [...soldBiosites].sort(
-      (a, b) => new Date(a.soldDate || a.updatedAt).getTime() - new Date(b.soldDate || b.updatedAt).getTime()
-    );
-
-    let cumulativeRevenue = 0;
-    const salesEvents = sortedSold.map((b) => {
-      const price = b.soldPrice || b.salePrice || 0;
-      cumulativeRevenue += price;
-      return {
-        id: b.id,
-        name: b.name,
-        slug: b.slug,
-        clientName: b.clientName || 'Cliente Anônimo',
-        clientPhone: b.clientPhone || '',
-        price,
-        cumulativeRevenue,
-        date: b.soldDate || b.updatedAt,
-        category: b.category,
-      };
-    });
-
-    return {
-      biosites,
-      soldBiosites,
-      negotiatingBiosites,
-      availableBiosites,
-      internalBiosites,
-      totalSoldKz,
-      pipelineKz,
-      availablePotentialKz,
-      monthlyRecurringKz,
-      publishedCount,
-      draftCount,
-      totalViews,
-      totalWhatsappClicks,
-      averageTicketKz,
-      conversionRate,
-      salesEvents,
-    };
-  },
 };

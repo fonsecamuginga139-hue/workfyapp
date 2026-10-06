@@ -16,6 +16,7 @@ const BLOCK_TYPES: Array<{ id: BiositeBlock['type']; label: string }> = [
   { id: 'image', label: 'Imagem' },
   { id: 'video', label: 'Vídeo' },
   { id: 'music', label: 'Música (Spotify)' },
+  { id: 'sticker', label: 'Elemento decorativo' },
   { id: 'spacer', label: 'Espaço' },
 ];
 
@@ -51,6 +52,7 @@ const defaultContent = (type: BiositeBlock['type']): Record<string, unknown> => 
     case 'hero': return { title: '', subtitle: '', url: '', overlay: 35, buttonLabel: '', buttonUrl: '' };
     case 'text': return { text: '', fontSize: 'md', weight: 'normal' };
     case 'buttons': return { items: [{ label: '', url: '', style: 'solid', shape: 'pill', enabled: true }] };
+    case 'sticker': return { symbol: '✦', x: 50, y: 50, scale: 100, rotation: 0, opacity: 100 };
     default: return { url: '' };
   }
 };
@@ -130,6 +132,28 @@ function Seg({ value, options, onChange }: { value: string; options: Array<[stri
   );
 }
 
+const STICKERS = ['✦', '★', '♥', '✓', '☀', '●', '◆', '↗'];
+
+function StickerPositionEditor({ content, onChange }: { content: Record<string, any>; onChange: (key: string, value: unknown) => void }) {
+  const updatePosition = (event: React.PointerEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    onChange('x', Math.round(Math.min(Math.max(((event.clientX - bounds.left) / bounds.width) * 100, 0), 100)));
+    onChange('y', Math.round(Math.min(Math.max(((event.clientY - bounds.top) / bounds.height) * 100, 0), 100)));
+  };
+  return (
+    <div
+      className="relative h-36 w-full touch-none overflow-hidden rounded-xl border border-[#E4E7EC] bg-[#F7F9FC]"
+      onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); updatePosition(event); }}
+      onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) updatePosition(event); }}
+      aria-label="Posição do elemento"
+    >
+      <div className="absolute select-none" style={{ left: `${content.x ?? 50}%`, top: `${content.y ?? 50}%`, opacity: Number(content.opacity ?? 100) / 100, transform: `translate(-50%, -50%) scale(${Number(content.scale ?? 100) / 100}) rotate(${Number(content.rotation ?? 0)}deg)` }}>
+        {content.url ? <img src={content.url} alt="" draggable={false} className="h-14 w-14 object-contain" /> : <span className="block text-4xl leading-none">{content.symbol || '✦'}</span>}
+      </div>
+    </div>
+  );
+}
+
 function BlockRow({ block, busy, onSave, onDuplicate, onDelete }: {
   block: BiositeBlock; busy: boolean;
   onSave: (p: Partial<BiositeBlock>) => void; onDuplicate: () => void; onDelete: () => void;
@@ -196,6 +220,14 @@ function BlockRow({ block, busy, onSave, onDuplicate, onDelete }: {
           {(block.type === 'image' || block.type === 'video') && <ImageUploader label="Ficheiro" value={c.url || ''} onChange={(v) => set('url', v)} acceptVideo={block.type === 'video'} aspectRatio="wide" />}
           {block.type === 'video' && <label className="flex items-center gap-2 text-sm text-[#344054]"><input type="checkbox" checked={!!c.autoplay} onChange={(e) => set('autoplay', e.target.checked)} />Tocar sozinho, sem som e em loop</label>}
           {block.type === 'music' && <input className={input} placeholder="https://open.spotify.com/track/..." value={c.url || ''} onChange={(e) => set('url', e.target.value)} />}
+          {block.type === 'sticker' && (<>
+            <div><span className={label}>Escolher elemento</span><div className="grid grid-cols-8 gap-1">{STICKERS.map((symbol) => <button key={symbol} type="button" aria-label={`Elemento ${symbol}`} onClick={() => { set('symbol', symbol); set('url', ''); }} className={`h-9 rounded-lg border text-lg ${!c.url && c.symbol === symbol ? 'border-[#0066FF] bg-blue-50' : 'border-[#E4E7EC] bg-white'}`}>{symbol}</button>)}</div></div>
+            <ImageUploader label="Ou usar imagem própria" value={c.url || ''} onChange={(value) => set('url', value)} aspectRatio="square" maxDimension={600} />
+            <div><span className={label}>Arraste para posicionar</span><StickerPositionEditor content={c} onChange={set} /></div>
+            <div><span className={label}>Tamanho: {c.scale ?? 100}%</span><input type="range" min={40} max={220} value={c.scale ?? 100} onChange={(e) => set('scale', Number(e.target.value))} className="w-full" /></div>
+            <div><span className={label}>Rotação: {c.rotation ?? 0}°</span><input type="range" min={-180} max={180} value={c.rotation ?? 0} onChange={(e) => set('rotation', Number(e.target.value))} className="w-full" /></div>
+            <div><span className={label}>Opacidade: {c.opacity ?? 100}%</span><input type="range" min={10} max={100} value={c.opacity ?? 100} onChange={(e) => set('opacity', Number(e.target.value))} className="w-full" /></div>
+          </>)}
 
           <div><span className={label}>Tamanho</span><Seg value={block.size} onChange={(v) => onSave({ size: v as BiositeBlock['size'] })} options={[['compact', 'Compacto'], ['standard', 'Normal'], ['large', 'Grande']]} /></div>
           {block.type !== 'spacer' && (<>

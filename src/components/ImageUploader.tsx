@@ -136,6 +136,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   };
 
   const hasValue = Boolean(value && value.trim().length > 0);
+  const valueIsVideo = Boolean(value && /(?:\.mp4|\.webm)(?:\?|$)/i.test(value));
 
   return (
     <div className="space-y-2">
@@ -181,17 +182,21 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               aspectRatio === 'wide' ? 'w-24 h-14' : 'w-14 h-14'
             }`}
           >
-            <img
-              src={value}
-              alt="Preview"
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+            {valueIsVideo ? (
+              <video src={value} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+            ) : (
+              <img
+                src={value}
+                alt="Preview"
+                className="h-full w-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-[#0B1F3A] truncate">
-              {value?.startsWith('data:') ? 'Imagem carregada da galeria' : 'Imagem por link externo'}
+              {valueIsVideo ? 'Vídeo de fundo' : value?.startsWith('data:') ? 'Imagem carregada da galeria' : 'Imagem por link externo'}
             </p>
             <p className="text-[10px] text-[#667085] truncate">
               {value?.startsWith('data:') ? 'Arquivo pronto e otimizado' : value}

@@ -85,6 +85,24 @@ export function BlockRenderer({ block, ctx }: { block: BiositeBlock; ctx: Ctx })
       );
       break;
     }
+    case 'sticker': {
+      const x = Math.min(Math.max(Number(c.x ?? 50), 0), 100);
+      const y = Math.min(Math.max(Number(c.y ?? 50), 0), 100);
+      const scale = Math.min(Math.max(Number(c.scale ?? 100), 40), 220) / 100;
+      const rotation = Math.min(Math.max(Number(c.rotation ?? 0), -180), 180);
+      const opacity = Math.min(Math.max(Number(c.opacity ?? 100), 10), 100) / 100;
+      const sticker = c.url
+        ? <img src={String(c.url)} alt="" draggable={false} className="h-16 w-16 object-contain" />
+        : <span className="block text-5xl leading-none" aria-hidden="true">{String(c.symbol || '✦')}</span>;
+      inner = (
+        <div className="relative h-28 w-full overflow-hidden" aria-hidden="true">
+          <div className="absolute select-none" style={{ left: `${x}%`, top: `${y}%`, opacity, transform: `translate(-50%, -50%) scale(${scale}) rotate(${rotation}deg)` }}>
+            {sticker}
+          </div>
+        </div>
+      );
+      break;
+    }
     case 'spacer':
       inner = <div style={{ height: block.size === 'large' ? 64 : block.size === 'compact' ? 16 : 32 }} />;
       break;
@@ -92,7 +110,7 @@ export function BlockRenderer({ block, ctx }: { block: BiositeBlock; ctx: Ctx })
   if (!inner) return null;
 
   return (
-    <section style={{ padding: block.type === 'spacer' ? 0 : PAD[block.size] || PAD.standard, color: ctx.textColor }}>
+    <section style={{ padding: block.type === 'spacer' || block.type === 'sticker' ? 0 : PAD[block.size] || PAD.standard, color: ctx.textColor }}>
       <div style={surface}>{inner}</div>
     </section>
   );

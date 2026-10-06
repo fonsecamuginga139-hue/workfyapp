@@ -121,10 +121,16 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
   const buttonGradient = appearance?.buttonGradient || defaultTheme.buttonGradient;
   const buttonStyle = appearance?.buttonStyle || defaultTheme.buttonStyle;
   const catalogLayout = appearance?.catalogLayout || defaultTheme.catalogLayout || 'list';
+  const fontFamily = appearance?.fontFamily || "'Plus Jakarta Sans', sans-serif";
+  const backgroundMediaUrl = appearance?.backgroundMediaUrl || '';
+  const backgroundMediaType = appearance?.backgroundMediaType || (/\.(mp4|webm)(\?|$)/i.test(backgroundMediaUrl) ? 'video' : 'image');
+  const backgroundMediaOpacity = Math.min(Math.max(Number(appearance?.backgroundMediaOpacity ?? 100), 10), 100) / 100;
+  const backgroundMediaOverlay = Math.min(Math.max(Number(appearance?.backgroundMediaOverlay ?? 20), 0), 90) / 100;
+  const backgroundMediaBlur = Math.min(Math.max(Number(appearance?.backgroundMediaBlur ?? 0), 0), 20);
 
   // Computed background style
   const containerBgStyle: React.CSSProperties = {
-    background: bgType === 'gradient' ? bgGradient : bgColor,
+    background: backgroundMediaUrl ? 'transparent' : bgType === 'gradient' ? bgGradient : bgColor,
   };
 
   // Border class based on style
@@ -249,14 +255,24 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
 
   return (
     <div
-      style={containerBgStyle}
+      style={{ ...containerBgStyle, fontFamily }}
       className={`relative w-full overflow-x-hidden transition-colors ${
         isSimulator ? 'h-full overflow-y-auto' : 'min-h-screen'
       }`}
     >
+      {backgroundMediaUrl && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          {backgroundMediaType === 'video' ? (
+            <video src={backgroundMediaUrl} autoPlay muted loop playsInline preload="metadata" className="h-full w-full" style={{ objectFit: appearance?.backgroundMediaScale || 'cover', objectPosition: appearance?.backgroundMediaPosition || 'center', opacity: backgroundMediaOpacity, filter: backgroundMediaBlur ? `blur(${backgroundMediaBlur}px)` : undefined, transform: backgroundMediaBlur ? 'scale(1.06)' : undefined }} />
+          ) : (
+            <img src={backgroundMediaUrl} alt="" className="h-full w-full" style={{ objectFit: appearance?.backgroundMediaScale || 'cover', objectPosition: appearance?.backgroundMediaPosition || 'center', opacity: backgroundMediaOpacity, filter: backgroundMediaBlur ? `blur(${backgroundMediaBlur}px)` : undefined, transform: backgroundMediaBlur ? 'scale(1.06)' : undefined }} />
+          )}
+          <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${backgroundMediaOverlay})` }} />
+        </div>
+      )}
       <div
         style={containerBgStyle}
-        className={`mx-auto w-full transition-all min-h-screen ${
+        className={`relative mx-auto w-full transition-all min-h-screen ${
           isSimulator
             ? 'max-w-full'
             : 'max-w-[440px] shadow-2xl border-x'

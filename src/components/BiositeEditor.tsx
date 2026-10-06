@@ -95,6 +95,14 @@ const PRESETS: Array<{ id: ThemePreset; name: string; color: string; btn: Button
   { id: 'elegant', name: 'Elegant', color: '#1E40AF', btn: 'pill' },
 ];
 
+const FONT_OPTIONS = [
+  { name: 'Modern', value: "'Plus Jakarta Sans', sans-serif" },
+  { name: 'Clean', value: "Arial, Helvetica, sans-serif" },
+  { name: 'Elegant', value: "Georgia, 'Times New Roman', serif" },
+  { name: 'Classic', value: "'Trebuchet MS', Arial, sans-serif" },
+  { name: 'Bold', value: "Impact, 'Arial Narrow', sans-serif" },
+];
+
 export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavigate }) => {
   const [biosite, setBiosite] = useState<Biosite | null>(() =>
     StorageService.getBiositeById(biositeId)
@@ -1568,6 +1576,31 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                   <p className="text-xs text-[#667085]">
                     Personalize fundos com degradês suaves, formatos do catálogo, cores de blocos, bordas e botões.
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-[#0B1F3A]">Fonte do biosite</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {FONT_OPTIONS.map((font) => {
+                      const selected = (biosite.appearance.fontFamily || FONT_OPTIONS[0].value) === font.value;
+                      return <button key={font.name} type="button" onClick={() => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, fontFamily: font.value } })} style={{ fontFamily: font.value }} className={`rounded-xl border px-3 py-2.5 text-left text-sm ${selected ? 'border-[#155EEF] bg-blue-50 text-[#155EEF]' : 'border-[#EEF3F8] bg-[#F7F9FC] text-[#0B1F3A]'}`}>{font.name}</button>;
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t border-[#EEF3F8] pt-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0B1F3A]">Imagem ou vídeo de fundo</label>
+                    <p className="text-[11px] text-[#667085]">A mídia ocupa toda a página e mantém o conteúdo legível.</p>
+                  </div>
+                  <ImageUploader label="Mídia vertical" value={biosite.appearance.backgroundMediaUrl || ''} acceptVideo aspectRatio="wide" maxDimension={1920} onChange={(url) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, backgroundMediaUrl: url, backgroundMediaType: /\.(mp4|webm)(\?|$)/i.test(url) ? 'video' : 'image' } })} />
+                  {biosite.appearance.backgroundMediaUrl && (<>
+                    <div><label className="block text-[11px] font-semibold text-[#0B1F3A] mb-1">Posição</label><select value={biosite.appearance.backgroundMediaPosition || 'center'} onChange={(e) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, backgroundMediaPosition: e.target.value as 'top' | 'center' | 'bottom' } })} className="w-full rounded-xl border border-[#EEF3F8] bg-[#F7F9FC] px-3 py-2 text-xs"><option value="top">Topo</option><option value="center">Centro</option><option value="bottom">Fundo</option></select></div>
+                    <div><label className="block text-[11px] font-semibold text-[#0B1F3A] mb-1">Escala</label><select value={biosite.appearance.backgroundMediaScale || 'cover'} onChange={(e) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, backgroundMediaScale: e.target.value as 'cover' | 'contain' } })} className="w-full rounded-xl border border-[#EEF3F8] bg-[#F7F9FC] px-3 py-2 text-xs"><option value="cover">Preencher página</option><option value="contain">Mostrar mídia completa</option></select></div>
+                    <div><label className="block text-[11px] font-semibold text-[#0B1F3A]">Intensidade: {biosite.appearance.backgroundMediaOpacity ?? 100}%</label><input type="range" min={10} max={100} value={biosite.appearance.backgroundMediaOpacity ?? 100} onChange={(e) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, backgroundMediaOpacity: Number(e.target.value) } })} className="w-full" /></div>
+                    <div><label className="block text-[11px] font-semibold text-[#0B1F3A]">Escurecimento: {biosite.appearance.backgroundMediaOverlay ?? 20}%</label><input type="range" min={0} max={90} value={biosite.appearance.backgroundMediaOverlay ?? 20} onChange={(e) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, backgroundMediaOverlay: Number(e.target.value) } })} className="w-full" /></div>
+                    <div><label className="block text-[11px] font-semibold text-[#0B1F3A]">Desfoque: {biosite.appearance.backgroundMediaBlur ?? 0}px</label><input type="range" min={0} max={20} value={biosite.appearance.backgroundMediaBlur ?? 0} onChange={(e) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, backgroundMediaBlur: Number(e.target.value) } })} className="w-full" /></div>
+                  </>)}
                 </div>
 
                 {/* 1. PALETAS & TEMAS PRONTOS (NÃO-BRANCOS) */}

@@ -173,6 +173,13 @@ export interface Biosite {
     buttonStyle: ButtonStyle;
     layout: BiositeLayout;
     fontFamily?: string;
+    backgroundMediaUrl?: string;
+    backgroundMediaType?: 'image' | 'video';
+    backgroundMediaPosition?: 'top' | 'center' | 'bottom';
+    backgroundMediaScale?: 'cover' | 'contain';
+    backgroundMediaOpacity?: number;
+    backgroundMediaOverlay?: number;
+    backgroundMediaBlur?: number;
 
     // Advanced colors & gradients
     backgroundType?: BackgroundType;

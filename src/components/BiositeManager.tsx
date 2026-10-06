@@ -1,81 +1,54 @@
 import React, { useState } from 'react';
-import { Biosite, BiositeSaleStatus } from '../types';
-import { StorageService, formatKz, generateWhatsAppLink } from '../services/storage';
+import { Biosite } from '../types';
+import { StorageService } from '../services/storage';
 import { openExternalUrl, copyToClipboard } from '../utils/browser';
 import {
   Activity,
-  CheckCircle2,
   Clock,
   ExternalLink,
   Edit3,
   QrCode as QrIcon,
-  DollarSign,
-  Share2,
-  Sparkles,
-  Zap,
-  TrendingUp,
   Search,
-  Filter,
-  Check,
   ChevronDown,
   ChevronUp,
   MessageCircle,
   Eye,
   Smartphone,
-  Plus,
-  ArrowUpRight,
-  Flame,
 } from 'lucide-react';
-import { SellBiositeModal } from './SellBiositeModal';
 import { QrCodeModal } from './QrCodeModal';
 
 interface BiositeManagerProps {
   biosites: Biosite[];
-  onRefresh: () => void;
   onNavigate: (route: string) => void;
-  onGoToFuturisticDashboard: () => void;
 }
 
 export const BiositeManager: React.FC<BiositeManagerProps> = ({
   biosites,
-  onRefresh,
   onNavigate,
-  onGoToFuturisticDashboard,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<
-    'all' | 'active' | 'sold' | 'negotiating' | 'available' | 'draft'
+    'all' | 'active' | 'draft'
   >('all');
   const [expandedChecklistId, setExpandedChecklistId] = useState<string | null>(null);
-  const [selectedSellBiosite, setSelectedSellBiosite] = useState<Biosite | null>(null);
   const [selectedQrBiosite, setSelectedQrBiosite] = useState<Biosite | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Quick stats
   const activeCount = biosites.filter((b) => b.status === 'published').length;
   const draftCount = biosites.filter((b) => b.status === 'draft').length;
-  const soldBiosites = biosites.filter((b) => b.saleStatus === 'sold');
-  const totalSoldKz = soldBiosites.reduce((acc, b) => acc + (b.soldPrice || b.salePrice || 0), 0);
-  const negotiatingCount = biosites.filter((b) => b.saleStatus === 'negotiating').length;
-  const negotiatingKz = biosites
-    .filter((b) => b.saleStatus === 'negotiating')
-    .reduce((acc, b) => acc + (b.salePrice || 0), 0);
 
   // Filtered biosites
   const filteredBiosites = biosites.filter((b) => {
     const matchesSearch =
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (b.clientName && b.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
+      b.slug.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
 
     if (selectedFilter === 'active') return b.status === 'published';
     if (selectedFilter === 'draft') return b.status === 'draft';
-    if (selectedFilter === 'sold') return b.saleStatus === 'sold';
-    if (selectedFilter === 'negotiating') return b.saleStatus === 'negotiating';
-    if (selectedFilter === 'available') return b.saleStatus === 'available' || !b.saleStatus;
     return true;
   });
 
@@ -86,23 +59,9 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleOpenFollowUp = (b: Biosite) => {
-    const phone = b.clientPhone || b.whatsappConfig?.phoneNumber;
-    if (!phone) {
-      alert(`Cadastre o WhatsApp do cliente para este biosite clicando em "Venda & Preço".`);
-      return;
-    }
-    const publicUrl = `${window.location.origin}/b/${b.slug}`;
-    const clientGreeting = b.clientName ? `Olá, ${b.clientName}!` : 'Olá!';
-    const msg = `${clientGreeting} Aqui é da gestão do seu biosite na Workfy. Seu link oficial está 100% no ar: ${publicUrl}. Precisa de alguma alteração no cardápio/catálogo ou suporte hoje?`;
-    const link = generateWhatsAppLink(phone, msg);
-    openExternalUrl(link);
-  };
-
   return (
     <div id="biosite-manager-root" className="space-y-6">
-      {/* 1. TOP COMMERCIAL TELEMETRY SUMMARY */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 gap-3.5">
         {/* ATIVOS NO AR */}
         <div className="rounded-2xl border border-[#EEF3F8] bg-white p-4 shadow-2xs">
           <div className="flex items-center justify-between">
@@ -124,41 +83,6 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
               }}
             />
           </div>
-        </div>
-
-        {/* VENDIDOS & FATURAMENTO */}
-        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-white p-4 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
-              Total Vendido
-            </span>
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-700">
-              {soldBiosites.length} vendidos
-            </span>
-          </div>
-          <div className="mt-2">
-            <span className="text-xl sm:text-2xl font-black text-emerald-700">
-              {formatKz(totalSoldKz)}
-            </span>
-          </div>
-        </div>
-
-        {/* EM NEGOCIAÇÃO / PIPELINE */}
-        <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/40 to-white p-4 shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">
-              Em Negociação
-            </span>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-              {negotiatingCount} propostas
-            </span>
-          </div>
-          <div className="mt-2">
-            <span className="text-xl sm:text-2xl font-black text-amber-700">
-              {formatKz(negotiatingKz)}
-            </span>
-          </div>
-          <p className="mt-2 text-[11px] text-amber-900/80">Valor potencial a receber</p>
         </div>
 
         {/* RASCUNHOS / CONSTRUÇÃO */}
@@ -186,7 +110,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar biosite por nome, cliente ou categoria..."
+            placeholder="Buscar biosite por nome ou categoria..."
             className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[#F7F9FC] border border-[#EEF3F8] focus:border-[#155EEF] outline-none transition-colors"
           />
         </div>
@@ -196,9 +120,6 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
           {[
             { id: 'all', label: 'Todos' },
             { id: 'active', label: `Ativos (${activeCount})` },
-            { id: 'sold', label: `Vendidos (${soldBiosites.length})` },
-            { id: 'negotiating', label: `Negociando (${negotiatingCount})` },
-            { id: 'available', label: 'Disponíveis' },
             { id: 'draft', label: 'Rascunhos' },
           ].map((tab) => (
             <button
@@ -230,21 +151,10 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
             const isPublished = b.status === 'published';
             const progress = StorageService.calculateBiositeProgress(b);
             const isChecklistOpen = expandedChecklistId === b.id;
-            const salePrice = b.salePrice || 0;
-            const soldPrice = b.soldPrice || salePrice;
-            const isSold = b.saleStatus === 'sold';
-            const isNegotiating = b.saleStatus === 'negotiating';
-
             return (
               <div
                 key={b.id}
-                className={`rounded-2xl border bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-slate-300 ${
-                  isSold
-                    ? 'border-emerald-200 bg-gradient-to-r from-emerald-50/20 via-white to-white'
-                    : isNegotiating
-                    ? 'border-amber-200'
-                    : 'border-[#EEF3F8]'
-                }`}
+                className="rounded-2xl border border-[#EEF3F8] bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-slate-300"
               >
                 {/* ROW 1: HEADER & STATUS BADGES */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -298,26 +208,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
                     </div>
                   </div>
 
-                  {/* COMMERCIAL STATUS & ACTIONS */}
                   <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-                    {/* STATUS DE VENDA BADGE */}
-                    {isSold ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-3 py-1 text-xs font-black shadow-2xs border border-emerald-300">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                        <span>VENDIDO: {formatKz(soldPrice)}</span>
-                      </span>
-                    ) : isNegotiating ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-3 py-1 text-xs font-bold border border-amber-300">
-                        <Clock className="h-3.5 w-3.5 text-amber-700" />
-                        <span>Em Negociação: {formatKz(salePrice)}</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-800 px-3 py-1 text-xs font-bold border border-blue-200">
-                        <DollarSign className="h-3.5 w-3.5 text-blue-600" />
-                        <span>À Venda por: {formatKz(salePrice)}</span>
-                      </span>
-                    )}
-
                     {/* STATUS NO AR BADGE */}
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${
@@ -406,7 +297,7 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
                   )}
                 </div>
 
-                {/* ROW 3: TELEMETRY & COMMERCIAL FOLLOW-UP */}
+                {/* ROW 3: TELEMETRY & ACTIONS */}
                 <div className="mt-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
                   {/* METRICAS AO VIVO */}
                   <div className="flex items-center gap-4 text-xs text-[#667085]">
@@ -418,40 +309,10 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
                       <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
                       <strong>{b.analytics?.whatsappClicks || 0}</strong> no WhatsApp
                     </span>
-                    {b.clientName && (
-                      <span className="text-[#0B1F3A] font-semibold truncate max-w-[180px]">
-                        Cliente: {b.clientName}
-                      </span>
-                    )}
                   </div>
 
                   {/* QUICK ACTION BUTTONS */}
                   <div className="flex flex-wrap items-center gap-2">
-                    {/* DEFINIR VALOR / MARCAR COMO VENDIDO */}
-                    <button
-                      onClick={() => setSelectedSellBiosite(b)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        isSold
-                          ? 'border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                          : 'bg-[#155EEF] text-white shadow-2xs hover:opacity-90'
-                      }`}
-                    >
-                      <DollarSign className="h-3.5 w-3.5" />
-                      <span>{isSold ? 'Gerenciar Venda' : 'Venda & Preço'}</span>
-                    </button>
-
-                    {/* FOLLOW-UP WHATSAPP */}
-                    {(isSold || isNegotiating) && (
-                      <button
-                        onClick={() => handleOpenFollowUp(b)}
-                        title="Enviar mensagem de follow-up ao cliente no WhatsApp"
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
-                        <span>Follow-up</span>
-                      </button>
-                    )}
-
                     {/* EDITAR BIOSITE */}
                     <button
                       onClick={() =>
@@ -491,17 +352,6 @@ export const BiositeManager: React.FC<BiositeManagerProps> = ({
           })}
         </div>
       )}
-
-      {/* MODAL DE VENDA */}
-      <SellBiositeModal
-        biosite={selectedSellBiosite}
-        isOpen={Boolean(selectedSellBiosite)}
-        onClose={() => setSelectedSellBiosite(null)}
-        onUpdated={() => {
-          onRefresh();
-        }}
-        onGoToDashboard={onGoToFuturisticDashboard}
-      />
 
       {/* QR CODE MODAL */}
       {selectedQrBiosite && (

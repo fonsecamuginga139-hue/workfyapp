@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Biosite, User } from '../types';
-import { StorageService, formatKz } from '../services/storage';
+import { StorageService } from '../services/storage';
 import { openExternalUrl, copyToClipboard } from '../utils/browser';
 import {
   Plus,
@@ -16,7 +16,6 @@ import {
   User as UserIcon,
   Rocket,
   Activity,
-  DollarSign,
   LayoutGrid,
   Inbox,
 } from 'lucide-react';
@@ -24,15 +23,13 @@ import { QrCodeModal } from './QrCodeModal';
 import { WorkfyLogo } from './WorkfyLogo';
 import { BottomNavigation, ActiveNavTab } from './BottomNavigation';
 import { BiositeManager } from './BiositeManager';
-import { SalesDashboard } from './SalesDashboard';
-import { SellBiositeModal } from './SellBiositeModal';
 import { InboxPanel } from './InboxPanel';
 
 interface DashboardProps {
   user: User;
   onNavigate: (route: string) => void;
   onLogout: () => void;
-  initialTab?: 'biosites' | 'manager' | 'inbox' | 'vendas';
+  initialTab?: 'biosites' | 'manager' | 'inbox';
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -41,13 +38,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLogout,
   initialTab = 'biosites',
 }) => {
-  const [activeTab, setActiveTab] = useState<'biosites' | 'manager' | 'inbox' | 'vendas'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'biosites' | 'manager' | 'inbox'>(initialTab);
   const [inbox, setInbox] = useState<{ leads: any[]; bookings: any[] }>({ leads: [], bookings: [] });
   const [biosites, setBiosites] = useState<Biosite[]>(() =>
     StorageService.getBiosites(user.id)
   );
   const [selectedQrBiosite, setSelectedQrBiosite] = useState<Biosite | null>(null);
-  const [selectedSellBiosite, setSelectedSellBiosite] = useState<Biosite | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,8 +72,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const activeCount = biosites.filter((b) => b.status === 'published').length;
-  const soldBiosites = biosites.filter((b) => b.saleStatus === 'sold');
-  const soldCount = soldBiosites.length;
 
   useEffect(() => {
     if (activeTab === 'inbox') {
@@ -94,7 +88,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       onNavigate('/settings');
       return;
     }
-    if (tab === 'biosites' || tab === 'manager' || tab === 'inbox' || tab === 'vendas') {
+    if (tab === 'biosites' || tab === 'manager' || tab === 'inbox') {
       setActiveTab(tab);
       window.history.pushState({}, '', tab === 'biosites' ? '/dashboard' : `/dashboard/${tab}`);
     }
@@ -222,7 +216,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* MAIN BODY CONTENT */}
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* BIOSITE MANAGER */}
-        {(activeTab === 'manager' || activeTab === 'vendas') && (
+        {activeTab === 'manager' && (
           <div className="space-y-4">
             <div className="pb-3 border-b border-[#EEF3F8]">
               <h1 className="text-xl font-black text-[#0B1F3A] tracking-tight flex items-center gap-2">
@@ -236,9 +230,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <BiositeManager
               biosites={biosites}
-              onRefresh={reloadBiosites}
               onNavigate={onNavigate}
-              onGoToFuturisticDashboard={() => setActiveTab('manager')}
             />
           </div>
         )}
@@ -307,16 +299,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {biosites.map((b) => {
                   const publicUrl = `${window.location.origin}/b/${b.slug}`;
                   const isPublished = b.status === 'published';
-                  const isSold = b.saleStatus === 'sold';
-                  const salePrice = b.salePrice;
-                  const soldPrice = b.soldPrice;
-
                   return (
                     <div
                       key={b.id}
-                      className={`flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-2xs hover:shadow-xs transition-all ${
-                        isSold ? 'border-emerald-300' : 'border-[#EEF3F8]'
-                      }`}
+                      className="flex flex-col justify-between rounded-2xl border border-[#EEF3F8] bg-white p-5 shadow-2xs hover:shadow-xs transition-all"
                     >
                       <div>
                         {/* Top Row: Category & Status */}
@@ -325,11 +311,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             {b.category}
                           </span>
                           <div className="flex items-center gap-1.5">
-                            {isSold && (
-                              <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-black border border-emerald-300">
-                                VENDIDO
-                              </span>
-                            )}
                             <span
                               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                                 isPublished
@@ -464,15 +445,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         )}
       </main>
 
-      {/* MODAL DE VENDA */}
-      <SellBiositeModal
-        biosite={selectedSellBiosite}
-        isOpen={Boolean(selectedSellBiosite)}
-        onClose={() => setSelectedSellBiosite(null)}
-        onUpdated={() => reloadBiosites()}
-        onGoToDashboard={() => setActiveTab('manager')}
-      />
-
       {/* QR MODAL */}
       {selectedQrBiosite && (
         <QrCodeModal
@@ -485,10 +457,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* PERSISTENT BOTTOM NAVIGATION DOCK */}
       <BottomNavigation
-        activeTab={activeTab === 'vendas' ? 'manager' : activeTab}
+        activeTab={activeTab}
         onSelectTab={handleDockSelect}
         activeCount={activeCount}
-        soldCount={soldCount}
       />
     </div>
   );

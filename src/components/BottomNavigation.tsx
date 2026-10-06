@@ -3,26 +3,23 @@ import {
   LayoutGrid,
   Activity,
   Inbox,
-  DollarSign,
   Plus,
   Settings,
 } from 'lucide-react';
 
-export type ActiveNavTab = 'biosites' | 'manager' | 'inbox' | 'vendas' | 'new' | 'settings';
+export type ActiveNavTab = 'biosites' | 'manager' | 'inbox' | 'new' | 'settings';
 
 interface BottomNavigationProps {
   activeTab: ActiveNavTab;
   onSelectTab: (tab: ActiveNavTab) => void;
   biositesCount?: number;
   activeCount?: number;
-  soldCount?: number;
 }
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   activeTab,
   onSelectTab,
   activeCount = 0,
-  soldCount = 0,
 }) => {
   return (
     <nav

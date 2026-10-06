@@ -150,13 +150,12 @@ export default function App() {
     );
   }
 
-  // 5. Dashboard routes: /dashboard, /dashboard/manager, /dashboard/inbox, /dashboard/vendas, /dashboard/biosites
+  // 5. Dashboard routes
   if (
     currentPath === '/dashboard' ||
     currentPath === '/dashboard/biosites' ||
     currentPath === '/dashboard/manager' ||
-    currentPath === '/dashboard/inbox' ||
-    currentPath === '/dashboard/vendas'
+    currentPath === '/dashboard/inbox'
   ) {
     if (!user) {
       return <AuthPage mode="login" onSuccess={handleAuthSuccess} onNavigate={navigate} />;
@@ -166,8 +165,6 @@ export default function App() {
         ? 'manager'
         : currentPath === '/dashboard/inbox'
         ? 'inbox'
-        : currentPath === '/dashboard/vendas'
-        ? 'vendas'
         : 'biosites';
 
     return (

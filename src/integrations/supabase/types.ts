@@ -455,19 +455,13 @@ export type Database = {
           catalog_categories: Json
           catalog_items: Json
           category: string
-          client_name: string | null
-          client_notes: string | null
-          client_phone: string | null
           completion_progress: number
           content_version: number
           cover_url: string | null
           created_at: string
           id: string
           logo_url: string | null
-          monthly_fee: number | null
           name: string
-          sale_price: number | null
-          sale_status: string
           sections: Json
           seo: Json
           short_description: string
@@ -475,8 +469,6 @@ export type Database = {
           showcased_at: string | null
           slug: string
           social_links_data: Json
-          sold_date: string | null
-          sold_price: number | null
           status: string
           updated_at: string
           user_id: string
@@ -490,19 +482,13 @@ export type Database = {
           catalog_categories?: Json
           catalog_items?: Json
           category?: string
-          client_name?: string | null
-          client_notes?: string | null
-          client_phone?: string | null
           completion_progress?: number
           content_version?: number
           cover_url?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
-          monthly_fee?: number | null
           name?: string
-          sale_price?: number | null
-          sale_status?: string
           sections?: Json
           seo?: Json
           short_description?: string
@@ -510,8 +496,6 @@ export type Database = {
           showcased_at?: string | null
           slug: string
           social_links_data?: Json
-          sold_date?: string | null
-          sold_price?: number | null
           status?: string
           updated_at?: string
           user_id: string
@@ -525,19 +509,13 @@ export type Database = {
           catalog_categories?: Json
           catalog_items?: Json
           category?: string
-          client_name?: string | null
-          client_notes?: string | null
-          client_phone?: string | null
           completion_progress?: number
           content_version?: number
           cover_url?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
-          monthly_fee?: number | null
           name?: string
-          sale_price?: number | null
-          sale_status?: string
           sections?: Json
           seo?: Json
           short_description?: string
@@ -545,8 +523,6 @@ export type Database = {
           showcased_at?: string | null
           slug?: string
           social_links_data?: Json
-          sold_date?: string | null
-          sold_price?: number | null
           status?: string
           updated_at?: string
           user_id?: string

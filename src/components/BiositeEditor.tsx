@@ -98,7 +98,7 @@ const PRESETS: Array<{ id: ThemePreset; name: string; color: string; btn: Button
 const FONT_OPTIONS = [
   { name: 'Modern', value: "'Plus Jakarta Sans', sans-serif" },
   { name: 'Clean', value: "Arial, Helvetica, sans-serif" },
-  { name: 'Elegant', value: "Georgia, 'Times New Roman', serif" },
+  { name: 'Elegant', value: "Avenir, 'Avenir Next', sans-serif" },
   { name: 'Classic', value: "'Trebuchet MS', Arial, sans-serif" },
   { name: 'Bold', value: "Impact, 'Arial Narrow', sans-serif" },
 ];

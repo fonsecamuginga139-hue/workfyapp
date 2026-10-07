@@ -68,7 +68,7 @@ export interface CatalogItem {
   order: number;
 }
 
-export type BiositeBlockType = 'hero' | 'text' | 'image' | 'video' | 'buttons' | 'music' | 'form' | 'services' | 'spacer';
+export type BiositeBlockType = 'hero' | 'text' | 'image' | 'video' | 'buttons' | 'music' | 'form' | 'services' | 'sticker' | 'spacer';
 
 export interface BiositeBlock {
   id: string;

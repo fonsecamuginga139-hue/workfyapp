@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+
+const isVideoUrl = (u?: string) => !!u && /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u.split('?')[0] + '?');
+const CatalogMedia: React.FC<{ src?: string; alt?: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }> = ({ src, alt, className, referrerPolicy }) =>
+  isVideoUrl(src)
+    ? <video src={src} className={className} muted loop autoPlay playsInline preload="metadata" aria-label={alt} />
+    : <img src={src} alt={alt} className={className} referrerPolicy={referrerPolicy} loading="lazy" />;
 import {
   MessageCircle,
   Phone,
@@ -670,7 +676,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                           <div>
                             {item.imageUrl ? (
                               <div className="relative h-32 w-full overflow-hidden rounded-lg mb-2.5">
-                                <img
+                                <CatalogMedia
                                   src={item.imageUrl}
                                   alt={item.name}
                                   className="h-full w-full object-cover"
@@ -749,7 +755,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                         <div>
                           {item.imageUrl && (
                             <div className="relative h-28 w-full overflow-hidden rounded-lg mb-2">
-                              <img
+                              <CatalogMedia
                                 src={item.imageUrl}
                                 alt={item.name}
                                 className="h-full w-full object-cover"
@@ -820,7 +826,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                       >
                         {item.imageUrl && (
                           <div className="relative h-44 w-full overflow-hidden">
-                            <img
+                            <CatalogMedia
                               src={item.imageUrl}
                               alt={item.name}
                               className="h-full w-full object-cover"
@@ -892,7 +898,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                         className={`flex gap-3 rounded-xl ${cardBorderClass} p-3 shadow-md hover:opacity-95 transition-all`}
                       >
                         {item.imageUrl ? (
-                          <img
+                          <CatalogMedia
                             src={item.imageUrl}
                             alt={item.name}
                             className="h-20 w-20 rounded-lg object-cover bg-slate-900/20 shrink-0"

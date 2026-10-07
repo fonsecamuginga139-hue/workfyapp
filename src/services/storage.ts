@@ -144,6 +144,8 @@ function authError(msg: string): string {
   return 'Não conseguimos processar o acesso. Tente novamente.';
 }
 
+const MEDIA_LINK_TTL = 60 * 60 * 24 * 365;
+
 export const StorageService = {
   subscribe(fn: () => void) {
     listeners.add(fn);
@@ -442,6 +444,42 @@ export const StorageService = {
     return { ...emptyAnalytics(), ...(data as any) };
   },
 
+  /** Re-signs private media links of a biosite so public pages never show expired media. */
+  async refreshMediaLinks(biositeId: string) {
+    const site = biositesCache.find((b) => b.id === biositeId);
+    if (!site) return;
+    const re = /https?:\/\/[^"\s]*\/storage\/v1\/object\/sign\/biosite-images\/([^?"\s]+)\?token=[^"\s]+/g;
+    const { blocks, servicesData, formsData, analytics, ...core } = site;
+    const parts = { core: JSON.stringify(core), blocks: JSON.stringify(blocks || []), services: JSON.stringify(servicesData || []) };
+    const paths = new Set<string>();
+    Object.values(parts).forEach((t) => { for (const m of t.matchAll(re)) paths.add(decodeURIComponent(m[1])); });
+    if (!paths.size) return;
+    const { data, error } = await supabase.storage.from('biosite-images').createSignedUrls([...paths], MEDIA_LINK_TTL);
+    if (error || !data) return;
+    const fresh = new Map(data.filter((d) => d.signedUrl && d.path).map((d) => [d.path as string, d.signedUrl]));
+    const swap = (t: string) => t.replace(re, (full, p1) => fresh.get(decodeURIComponent(p1)) || full);
+    const nextCore = JSON.parse(swap(parts.core));
+    const changed: Partial<Biosite> = {};
+    (['logoUrl', 'coverUrl', 'appearance', 'catalogItems', 'catalogCategories', 'sections', 'seo'] as const).forEach((k) => {
+      if (JSON.stringify((core as any)[k]) !== JSON.stringify(nextCore[k])) (changed as any)[k] = nextCore[k];
+    });
+    if (Object.keys(changed).length) { this.updateBiosite(biositeId, changed); await this.saveNow(biositeId); }
+    const nextBlocks: BiositeBlock[] = JSON.parse(swap(parts.blocks));
+    for (const b of nextBlocks) {
+      const old = (blocks || []).find((o) => o.id === b.id);
+      if (old && JSON.stringify(old.content) !== JSON.stringify(b.content)) {
+        await supabase.from('biosite_blocks' as any).update({ content: b.content, appearance: b.appearance } as any).eq('id', b.id);
+      }
+    }
+    const nextServices: BiositeService[] = JSON.parse(swap(parts.services));
+    for (const sv of nextServices) {
+      const old = (servicesData || []).find((o) => o.id === sv.id);
+      if (old && old.mediaUrl !== sv.mediaUrl) await supabase.from('biosite_services' as any).update({ media_url: sv.mediaUrl } as any).eq('id', sv.id);
+    }
+    const idx = biositesCache.findIndex((b) => b.id === biositeId);
+    if (idx !== -1) { biositesCache = biositesCache.map((b, i) => i === idx ? { ...b, blocks: nextBlocks, servicesData: nextServices } : b); notify(); }
+  },
+
   /** Uploads an image to the user's private folder and returns a long-lived URL. */
   async uploadImage(file: Blob, ext: string): Promise<string> {
     const { data: s } = await supabase.auth.getSession();
@@ -454,7 +492,7 @@ export const StorageService = {
     if (error) throw new Error(error.message);
     const { data, error: e2 } = await supabase.storage
       .from('biosite-images')
-      .createSignedUrl(path, 60 * 60 * 24 * 7);
+      .createSignedUrl(path, MEDIA_LINK_TTL);
     if (e2 || !data) throw new Error(e2?.message || 'Falha ao gerar link da imagem');
     return data.signedUrl;
   },

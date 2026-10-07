@@ -2547,10 +2547,11 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
 
               <div>
                 <ImageUploader
-                  label="Foto do Produto / Serviço (opcional)"
+                  label="Foto ou vídeo do produto (opcional)"
+                  acceptVideo
                   value={productForm.imageUrl}
                   onChange={(newUrl) => setProductForm({ ...productForm, imageUrl: newUrl })}
-                  description="Carregue uma imagem da galeria (PNG, JPG) ou insira um link."
+                  description="Imagem (PNG, JPG) ou vídeo curto (MP4). O vídeo toca em silêncio e em repetição."
                   aspectRatio="square"
                   maxDimension={800}
                   placeholderUrl="https://..."

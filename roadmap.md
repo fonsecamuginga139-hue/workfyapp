@@ -5,7 +5,7 @@
 - [x] Vendas, preços, cliente e mensalidade removidos do painel e dos biosites
 - [x] Fase 1a: arrastar blocos, bloco Hero, título/texto com estilo, bloco de botões, estilo por bloco, vidro
 - [x] Fase 1b: fontes, fundo com imagem/vídeo, figurinhas
-- [ ] Fase 2: vídeo no catálogo, editar serviços, links de mídia sem expirar
+- [x] Fase 2: vídeo no catálogo, editar serviços, links de mídia sem expirar
 - [ ] Fase 3: telefone separado, WhatsApp fixo, construtor de formulário
 - [ ] Fase 4: horários livres calculados
 - [ ] Fase 5: analytics por período e taxa de conversão real

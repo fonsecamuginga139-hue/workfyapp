@@ -1,3 +1,4 @@
+import { SmartMedia } from './SmartMedia';
 import React from 'react';
 import { BiositeBlock } from '../types';
 
@@ -31,9 +32,7 @@ export function BlockRenderer({ block, ctx }: { block: BiositeBlock; ctx: Ctx })
       const link = safeUrl(c.buttonUrl);
       inner = (
         <div className="relative w-full overflow-hidden" style={{ height: h, borderRadius: radius, boxShadow: shadow }}>
-          {url && (isVideo
-            ? <video className="absolute inset-0 h-full w-full object-cover" src={url} autoPlay muted loop playsInline preload="metadata" />
-            : <img className="absolute inset-0 h-full w-full object-cover" src={url} alt="" loading="lazy" />)}
+          {url && <SmartMedia src={url} hint={isVideo ? 'video' : undefined} fit={c.fit === 'contain' ? 'contain' : 'cover'} className="absolute inset-0 h-full w-full" />}
           <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${url ? overlay : 0})`, ...(url ? {} : { background: ctx.cardColor }) }} />
           <div className="relative flex h-full flex-col justify-end gap-2 p-5" style={{ textAlign: align, alignItems: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start', color: url ? '#fff' : ctx.textColor }}>
             {c.title && <h2 className="text-2xl font-bold leading-tight">{String(c.title)}</h2>}
@@ -54,12 +53,10 @@ export function BlockRenderer({ block, ctx }: { block: BiositeBlock; ctx: Ctx })
       );
       break;
     case 'image':
-      inner = typeof c.url === 'string' ? <img loading="lazy" className="w-full object-cover" style={{ borderRadius: radius, boxShadow: shadow }} src={c.url} alt={String(c.alt || '')} /> : null;
+      inner = typeof c.url === 'string' && c.url ? <SmartMedia natural src={c.url} style={{ borderRadius: radius, boxShadow: shadow }} alt={String(c.alt || '')} /> : null;
       break;
     case 'video':
-      inner = typeof c.url === 'string' ? (c.autoplay
-        ? <video autoPlay muted loop playsInline preload="metadata" className="w-full" style={{ borderRadius: radius, boxShadow: shadow }} src={c.url} />
-        : <video controls preload="none" playsInline className="w-full" style={{ borderRadius: radius, boxShadow: shadow }} src={c.url} />) : null;
+      inner = typeof c.url === 'string' && c.url ? <SmartMedia natural hint="video" controls={!c.autoplay} src={c.url} style={{ borderRadius: radius, boxShadow: shadow }} /> : null;
       break;
     case 'music':
       inner = typeof c.url === 'string' && /^https:\/\/open\.spotify\.com\/(intl-[a-z]+\/)?(track|album|playlist|episode|show)\/[\w]+/.test(c.url)

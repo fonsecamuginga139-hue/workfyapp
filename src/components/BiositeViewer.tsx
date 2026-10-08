@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-const isVideoUrl = (u?: string) => !!u && /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u.split('?')[0] + '?');
-const CatalogMedia: React.FC<{ src?: string; alt?: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }> = ({ src, alt, className, referrerPolicy }) =>
-  isVideoUrl(src)
-    ? <video src={src} className={className} muted loop autoPlay playsInline preload="metadata" aria-label={alt} />
-    : <img src={src} alt={alt} className={className} referrerPolicy={referrerPolicy} loading="lazy" />;
+import { SmartMedia } from './SmartMedia';
+import { resolveMedia } from '../utils/media';
+import { formatPrice } from '../utils/currency';
+const CatalogMedia: React.FC<{ src?: string; alt?: string; className?: string; referrerPolicy?: React.HTMLAttributeReferrerPolicy }> = ({ src, alt, className }) =>
+  <SmartMedia src={src} alt={alt} className={(className || '').replace('object-cover', '')} />;
 import {
   MessageCircle,
   Phone,
@@ -28,7 +28,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { Biosite, CatalogItem } from '../types';
-import { formatKz, generateWhatsAppLink } from '../services/storage';
+import { generateWhatsAppLink } from '../services/storage';
 import { THEME_PRESETS } from '../constants/themes';
 import { PublicLeadForm } from './PublicLeadForm';
 import { PublicBookingForm } from './PublicBookingForm';
@@ -105,6 +105,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
   } = biosite;
 
   // Resolve theme defaults
+  const money = (v: number) => formatPrice(v, appearance?.currency);
   const presetKey = appearance?.themePreset || 'classic';
   const defaultTheme = THEME_PRESETS[presetKey] || THEME_PRESETS.classic;
 
@@ -212,7 +213,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
 
   const handleProductWhatsApp = (item: CatalogItem) => {
     onTrackAction?.('product', item.name);
-    const msg = `Olá! Tenho interesse em *${item.name}* (${formatKz(item.price)}). Poderia me passar mais informações?`;
+    const msg = `Olá! Tenho interesse em *${item.name}* (${money(item.price)}). Poderia me passar mais informações?`;
     const link = generateWhatsAppLink(whatsappConfig.phoneNumber, msg);
     window.open(link, '_blank');
   };
@@ -268,17 +269,13 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
     >
       {backgroundMediaUrl && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          {backgroundMediaType === 'video' ? (
-            <video src={backgroundMediaUrl} autoPlay muted loop playsInline preload="metadata" className="h-full w-full" style={{ objectFit: appearance?.backgroundMediaScale || 'cover', objectPosition: appearance?.backgroundMediaPosition || 'center', opacity: backgroundMediaOpacity, filter: backgroundMediaBlur ? `blur(${backgroundMediaBlur}px)` : undefined, transform: backgroundMediaBlur ? 'scale(1.06)' : undefined }} />
-          ) : (
-            <img src={backgroundMediaUrl} alt="" className="h-full w-full" style={{ objectFit: appearance?.backgroundMediaScale || 'cover', objectPosition: appearance?.backgroundMediaPosition || 'center', opacity: backgroundMediaOpacity, filter: backgroundMediaBlur ? `blur(${backgroundMediaBlur}px)` : undefined, transform: backgroundMediaBlur ? 'scale(1.06)' : undefined }} />
-          )}
+          {(() => { const bg = resolveMedia(backgroundMediaUrl, backgroundMediaType); return bg.kind === 'embed' ? <iframe src={bg.src} title="" className="absolute left-1/2 top-1/2 h-[120%] w-[220%] -translate-x-1/2 -translate-y-1/2 border-0" style={{ opacity: backgroundMediaOpacity }} allow="autoplay; encrypted-media" /> : bg.kind === 'video' ? <video src={bg.src} autoPlay muted loop playsInline preload="metadata" className="h-full w-full" style={{ objectFit: appearance?.backgroundMediaScale || 'cover', objectPosition: appearance?.backgroundMediaPosition || 'center', opacity: backgroundMediaOpacity, filter: backgroundMediaBlur ? `blur(${backgroundMediaBlur}px)` : undefined, transform: backgroundMediaBlur ? 'scale(1.06)' : undefined }} /> : <img src={bg.src} referrerPolicy="no-referrer" alt="" className="h-full w-full" style={{ objectFit: appearance?.backgroundMediaScale || 'cover', objectPosition: appearance?.backgroundMediaPosition || 'center', opacity: backgroundMediaOpacity, filter: backgroundMediaBlur ? `blur(${backgroundMediaBlur}px)` : undefined, transform: backgroundMediaBlur ? 'scale(1.06)' : undefined }} />; })()}
           <div className="absolute inset-0" style={{ backgroundColor: `rgba(0,0,0,${backgroundMediaOverlay})` }} />
         </div>
       )}
       <div
         style={containerBgStyle}
-        className={`relative mx-auto w-full transition-all min-h-screen ${
+        className={`relative mx-auto w-full transition-all ${isSimulator ? 'min-h-full' : 'min-h-screen'} ${
           isSimulator
             ? 'max-w-full'
             : 'max-w-[440px] shadow-2xl border-x'
@@ -340,12 +337,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
         {/* PROFILE COVER */}
         {sections.profile?.showCover && coverUrl && (
           <div className="relative h-36 sm:h-40 w-full overflow-hidden">
-            <img
-              src={coverUrl}
-              alt="Capa do negócio"
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+            <SmartMedia src={coverUrl} alt="Capa do negócio" fit="cover" className="h-full w-full" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
         )}
@@ -360,12 +352,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                   sections.profile?.showCover && coverUrl ? '-mt-14' : 'mt-0'
                 } h-20 w-20 shrink-0`}
               >
-                <img
-                  src={logoUrl}
-                  alt={name}
-                  className="h-full w-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
+                <SmartMedia src={logoUrl} alt={name} fit="cover" className="h-full w-full" />
               </div>
             ) : (
               <div
@@ -717,7 +704,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                                 style={{ color: accentColor }}
                                 className="text-xs font-extrabold"
                               >
-                                {formatKz(item.price)}
+                                {money(item.price)}
                               </span>
                             </div>
 
@@ -795,7 +782,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                             style={{ color: accentColor }}
                             className="block text-xs font-extrabold mb-1.5"
                           >
-                            {formatKz(item.price)}
+                            {money(item.price)}
                           </span>
 
                           <button
@@ -856,7 +843,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                               style={{ color: accentColor }}
                               className="text-sm font-extrabold whitespace-nowrap"
                             >
-                              {formatKz(item.price)}
+                              {money(item.price)}
                             </span>
                           </div>
 
@@ -944,7 +931,7 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
                               style={{ color: accentColor }}
                               className="text-xs font-extrabold"
                             >
-                              {formatKz(item.price)}
+                              {money(item.price)}
                             </span>
 
                             <button
@@ -1076,11 +1063,11 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
             <h2 className="text-base font-bold" style={{ color: textColor }}>Serviços</h2>
             {(biosite.servicesData || []).filter((service) => service.available).map((service) => (
               <div key={service.id} className="border p-4 space-y-2 rounded-lg" style={{ backgroundColor: cardBgColor, borderColor: cardBorderColor, color: textColor }}>
-                {service.mediaUrl && (service.mediaType === 'video' ? <video controls preload="none" playsInline className="w-full rounded-lg" src={service.mediaUrl} /> : <img loading="lazy" className="w-full rounded-lg object-cover" src={service.mediaUrl} alt={service.name} />)}
+                {service.mediaUrl && <SmartMedia natural src={service.mediaUrl} hint={service.mediaType} controls={service.mediaType === 'video'} alt={service.name} className="rounded-lg" />}
                 <strong className="block">{service.name}</strong>
                 {service.description && <p className="text-xs opacity-75">{service.description}</p>}
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-sm font-semibold">{service.promotionalPrice != null ? formatKz(service.promotionalPrice) : service.price != null ? formatKz(service.price) : ''}</span>
+                  <span className="text-sm font-semibold">{service.promotionalPrice != null ? money(service.promotionalPrice) : service.price != null ? money(service.price) : ''}</span>
                   {service.ctaType === 'booking' && <PublicBookingForm slug={biosite.slug} service={service} color={buttonBgColor} cardColor={cardBgColor} textColor={textColor} />}
                   {service.ctaType === 'whatsapp' && whatsappConfig.phoneNumber && <a href={generateWhatsAppLink(whatsappConfig.phoneNumber, `Olá! Gostaria de saber mais sobre ${service.name}.`)} target="_blank" rel="noopener noreferrer" className="text-sm font-bold underline">{service.ctaLabel}</a>}
                 </div>

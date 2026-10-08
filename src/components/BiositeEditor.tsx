@@ -145,6 +145,10 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
       onNavigate('/dashboard');
     } else {
       setBiosite(loaded);
+      void StorageService.refreshMediaLinks(biositeId).then(() => {
+        const fresh = StorageService.getBiositeById(biositeId);
+        if (fresh) setBiosite(fresh);
+      });
     }
   }, [biositeId, onNavigate]);
 

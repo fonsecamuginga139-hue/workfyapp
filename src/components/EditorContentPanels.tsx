@@ -250,33 +250,64 @@ function BlockRow({ block, busy, onSave, onDuplicate, onDelete }: {
 
 
 function ServicesPanel({ biosite, busy, run }: PanelProps) {
-  const empty = { name: '', description: '', price: '', duration: '', mediaUrl: '', ctaType: 'booking' as BiositeService['ctaType'] };
+  const empty = { name: '', description: '', price: '', promo: '', duration: '', mediaUrl: '', ctaType: 'booking' as BiositeService['ctaType'], featured: false };
   const [f, setF] = useState(empty);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const services = [...(biosite.servicesData || [])].sort((a, b) => a.position - b.position);
+  const ctaLabel = (t: BiositeService['ctaType']) => t === 'booking' ? 'Agendar' : t === 'whatsapp' ? 'Pedir no WhatsApp' : 'Saber mais';
+  const isVideo = (u: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
 
-  const add = () => {
+  const startEdit = (s: BiositeService) => {
+    setEditingId(s.id);
+    setF({ name: s.name, description: s.description || '', price: s.price != null ? String(s.price) : '', promo: s.promotionalPrice != null ? String(s.promotionalPrice) : '', duration: s.durationMinutes ? String(s.durationMinutes) : '', mediaUrl: s.mediaUrl || '', ctaType: s.ctaType, featured: s.featured });
+  };
+  const cancel = () => { setEditingId(null); setF(empty); };
+
+  const save = () => {
     if (f.name.trim().length < 2) return;
+    const price = f.price ? Number(f.price) : undefined;
+    const promo = f.promo ? Number(f.promo) : undefined;
     return run(async () => {
-      await StorageService.createService(biosite.id, {
-        name: f.name.trim().slice(0, 120), description: f.description.trim().slice(0, 1000),
-        price: f.price ? Number(f.price) : undefined, durationMinutes: f.duration ? Number(f.duration) : undefined,
-        mediaType: /\.(mp4|webm)(\?|$)/i.test(f.mediaUrl) ? 'video' : 'image', mediaUrl: f.mediaUrl || undefined,
-        ctaType: f.ctaType, ctaLabel: f.ctaType === 'booking' ? 'Agendar' : f.ctaType === 'whatsapp' ? 'Pedir no WhatsApp' : 'Saber mais',
-        featured: false, available: true, position: services.length + 1,
-      });
-      setF(empty);
+      if (editingId) {
+        await StorageService.updateService(editingId, {
+          name: f.name.trim().slice(0, 120), description: f.description.trim().slice(0, 1000),
+          price: price ?? null, promotional_price: promo ?? null, duration_minutes: f.duration ? Number(f.duration) : null,
+          media_type: isVideo(f.mediaUrl) ? 'video' : 'image', media_url: f.mediaUrl || null,
+          cta_type: f.ctaType, cta_label: ctaLabel(f.ctaType), featured: f.featured,
+        });
+      } else {
+        await StorageService.createService(biosite.id, {
+          name: f.name.trim().slice(0, 120), description: f.description.trim().slice(0, 1000),
+          price, promotionalPrice: promo, durationMinutes: f.duration ? Number(f.duration) : undefined,
+          mediaType: isVideo(f.mediaUrl) ? 'video' : 'image', mediaUrl: f.mediaUrl || undefined,
+          ctaType: f.ctaType, ctaLabel: ctaLabel(f.ctaType),
+          featured: f.featured, available: true, position: services.length + 1,
+        });
+      }
+      cancel();
+    });
+  };
+
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= services.length) return;
+    const a = services[i], b = services[j];
+    return run(async () => {
+      await StorageService.updateService(a.id, { position: j + 1 });
+      await StorageService.updateService(b.id, { position: i + 1 });
     });
   };
 
   return (
     <>
       <section className="rounded-2xl border border-[#E4E7EC] bg-white p-4 space-y-3">
-        <h3 className="text-sm font-bold text-[#0B1F3A]">Novo serviço</h3>
+        <h3 className="text-sm font-bold text-[#0B1F3A]">{editingId ? 'Editar serviço' : 'Novo serviço'}</h3>
         <input className={input} placeholder="Nome do serviço" maxLength={120} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <textarea className={input} rows={2} placeholder="Descrição" maxLength={1000} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <input className={input} type="number" min={0} placeholder="Preço (Kz)" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
-          <input className={input} type="number" min={0} placeholder="Duração (min)" value={f.duration} onChange={(e) => setF({ ...f, duration: e.target.value })} />
+          <input className={input} type="number" min={0} placeholder="Promoção" value={f.promo} onChange={(e) => setF({ ...f, promo: e.target.value })} />
+          <input className={input} type="number" min={0} placeholder="Min" value={f.duration} onChange={(e) => setF({ ...f, duration: e.target.value })} />
         </div>
         <ImageUploader label="Imagem ou vídeo" value={f.mediaUrl} onChange={(v) => setF({ ...f, mediaUrl: v })} acceptVideo aspectRatio="wide" />
         <div>
@@ -285,17 +316,25 @@ function ServicesPanel({ biosite, busy, run }: PanelProps) {
             <option value="booking">Agendar</option><option value="whatsapp">Pedir no WhatsApp</option><option value="info">Saber mais</option>
           </select>
         </div>
-        <button type="button" className={primary} disabled={busy} onClick={add}><Plus className="h-4 w-4" />Adicionar serviço</button>
+        <label className="flex items-center gap-2 text-sm text-[#344054]">
+          <input type="checkbox" checked={f.featured} onChange={(e) => setF({ ...f, featured: e.target.checked })} /> Destacar este serviço
+        </label>
+        <button type="button" className={primary} disabled={busy} onClick={save}><Plus className="h-4 w-4" />{editingId ? 'Guardar alterações' : 'Adicionar serviço'}</button>
+        {editingId && <button type="button" className="w-full text-sm font-semibold text-[#475467]" onClick={cancel}>Cancelar</button>}
       </section>
       <section className="space-y-2">
         <h3 className="text-sm font-bold text-[#0B1F3A]">Serviços ({services.length})</h3>
         {services.length === 0 && <p className="text-xs text-[#667085]">Ainda não há serviços.</p>}
-        {services.map((s) => (
+        {services.map((s, i) => (
           <div key={s.id} className={`flex items-center gap-2 rounded-2xl border bg-white p-3 ${s.available ? 'border-[#E4E7EC]' : 'border-dashed opacity-70'}`}>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[#0B1F3A]">{s.name}</p>
-              <p className="text-xs text-[#667085]">{s.price != null ? `${s.price} Kz` : 'Sem preço'}{s.durationMinutes ? ` · ${s.durationMinutes} min` : ''}</p>
+            <div className="flex flex-col">
+              <button type="button" aria-label="Subir" className="text-xs text-[#475467] disabled:opacity-30" disabled={busy || i === 0} onClick={() => move(i, -1)}>▲</button>
+              <button type="button" aria-label="Descer" className="text-xs text-[#475467] disabled:opacity-30" disabled={busy || i === services.length - 1} onClick={() => move(i, 1)}>▼</button>
             </div>
+            <button type="button" className="min-w-0 flex-1 text-left" onClick={() => startEdit(s)}>
+              <p className="truncate text-sm font-semibold text-[#0B1F3A]">{s.featured ? '★ ' : ''}{s.name}</p>
+              <p className="text-xs text-[#667085]">{s.promotionalPrice != null ? `${s.promotionalPrice} Kz (antes ${s.price ?? '-'})` : s.price != null ? `${s.price} Kz` : 'Sem preço'}{s.durationMinutes ? ` · ${s.durationMinutes} min` : ''} · Toque para editar</p>
+            </button>
             <button type="button" aria-label="Ocultar" className={iconBtn} disabled={busy} onClick={() => run(() => StorageService.updateService(s.id, { available: !s.available }))}>{s.available ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
             <button type="button" aria-label="Remover" className={iconBtn} disabled={busy} onClick={() => { if (confirm('Remover este serviço?')) run(() => StorageService.deleteService(s.id)); }}><Trash2 className="h-4 w-4" /></button>
           </div>

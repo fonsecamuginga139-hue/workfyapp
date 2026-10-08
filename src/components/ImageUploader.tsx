@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { StorageService } from '../services/storage';
+import { SmartMedia } from './SmartMedia';
+import { isVideoMedia } from '../utils/media';
 import { Upload, Link2, X, Image as ImageIcon, Check, RefreshCw } from 'lucide-react';
 
 interface ImageUploaderProps {
@@ -68,7 +70,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   aspectRatio = 'square',
   maxDimension = 1000,
   placeholderUrl = 'https://...',
-  acceptVideo = false,
+  acceptVideo = true,
 }) => {
   const [mode, setMode] = useState<'upload' | 'url'>('upload');
   const [isDragging, setIsDragging] = useState(false);
@@ -136,7 +138,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   };
 
   const hasValue = Boolean(value && value.trim().length > 0);
-  const valueIsVideo = Boolean(value && /(?:\.mp4|\.webm)(?:\?|$)/i.test(value));
+  const valueIsVideo = isVideoMedia(value);
 
   return (
     <div className="space-y-2">
@@ -182,21 +184,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               aspectRatio === 'wide' ? 'w-24 h-14' : 'w-14 h-14'
             }`}
           >
-            {valueIsVideo ? (
-              <video src={value} muted playsInline preload="metadata" className="h-full w-full object-cover" />
-            ) : (
-              <img
-                src={value}
-                alt="Preview"
-                className="h-full w-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            )}
+            <SmartMedia src={value} className="h-full w-full" />
           </div>
 
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold text-[#0B1F3A] truncate">
-              {valueIsVideo ? 'Vídeo de fundo' : value?.startsWith('data:') ? 'Imagem carregada da galeria' : 'Imagem por link externo'}
+              {valueIsVideo ? 'Vídeo' : value?.startsWith('data:') ? 'Ficheiro carregado' : 'Link externo'}
             </p>
             <p className="text-[10px] text-[#667085] truncate">
               {value?.startsWith('data:') ? 'Arquivo pronto e otimizado' : value}

@@ -204,6 +204,7 @@ export interface Biosite {
 
     // Catalog display format
     catalogLayout?: CatalogLayout;
+    currency?: string;
   };
 
   sections: {

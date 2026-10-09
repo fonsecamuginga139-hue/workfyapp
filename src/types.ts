@@ -101,9 +101,10 @@ export interface BiositeService {
 
 export interface BiositeFormField {
   id: string;
-  type: 'text' | 'email' | 'tel' | 'textarea';
+  type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'date';
   label: string;
   required: boolean;
+  options?: string[];
 }
 
 export interface BiositeForm {
@@ -241,6 +242,9 @@ export interface Biosite {
     phoneNumber: string; // e.g. +244 923 112 233
     defaultMessage: string;
     buttonLabel: string;
+    callNumber?: string;
+    callLabel?: string;
+    floatingButton?: boolean;
   };
 
   actionButtonsData: ActionButton[];

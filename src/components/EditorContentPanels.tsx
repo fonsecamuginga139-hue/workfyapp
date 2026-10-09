@@ -3,7 +3,7 @@ import { Copy, Eye, EyeOff, GripVertical, Plus, Trash2 } from 'lucide-react';
 import { DndContext, PointerSensor, TouchSensor, KeyboardSensor, closestCenter, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Biosite, BiositeBlock, BiositeForm, BiositeService } from '../types';
+import { Biosite, BiositeBlock, BiositeForm, BiositeFormField, BiositeService } from '../types';
 import { StorageService } from '../services/storage';
 import { ImageUploader } from './ImageUploader';
 
@@ -219,7 +219,12 @@ function BlockRow({ block, busy, onSave, onDuplicate, onDelete }: {
           </>)}
           {(block.type === 'image' || block.type === 'video') && <ImageUploader label="Ficheiro" value={c.url || ''} onChange={(v) => set('url', v)} acceptVideo aspectRatio="wide" />}
           {block.type === 'video' && <label className="flex items-center gap-2 text-sm text-[#344054]"><input type="checkbox" checked={!!c.autoplay} onChange={(e) => set('autoplay', e.target.checked)} />Tocar sozinho, sem som e em loop</label>}
-          {block.type === 'music' && <input className={input} placeholder="https://open.spotify.com/track/..." value={c.url || ''} onChange={(e) => set('url', e.target.value)} />}
+          {block.type === 'music' && (<>
+            <input className={input} placeholder="https://open.spotify.com/track/..." value={c.url || ''} onChange={(e) => set('url', e.target.value.trim())} />
+            {c.url && (/^https:\/\/open\.spotify\.com\/(intl-[a-z]+\/)?(track|album|playlist|episode|show)\/[\w]+/.test(c.url)
+              ? <iframe title="Pré-visualização Spotify" loading="lazy" allow="encrypted-media" src={String(c.url).replace(/open\.spotify\.com\/(intl-[a-z]+\/)?/, 'open.spotify.com/embed/')} className="w-full border-0" style={{ height: 152, borderRadius: 12 }} />
+              : <p className="text-xs text-red-600">Cole o link de partilha de uma música, álbum, playlist ou podcast do Spotify.</p>)}
+          </>)}
           {block.type === 'sticker' && (<>
             <div><span className={label}>Escolher elemento</span><div className="grid grid-cols-8 gap-1">{STICKERS.map((symbol) => <button key={symbol} type="button" aria-label={`Elemento ${symbol}`} onClick={() => { set('symbol', symbol); set('url', ''); }} className={`h-9 rounded-lg border text-lg ${!c.url && c.symbol === symbol ? 'border-[#0066FF] bg-blue-50' : 'border-[#E4E7EC] bg-white'}`}>{symbol}</button>)}</div></div>
             <ImageUploader label="Ou usar imagem própria" value={c.url || ''} onChange={(value) => set('url', value)} aspectRatio="square" maxDimension={600} />
@@ -344,9 +349,19 @@ function ServicesPanel({ biosite, busy, run }: PanelProps) {
   );
 }
 
+const FIELD_TYPES: Array<{ id: BiositeFormField['type']; label: string }> = [
+  { id: 'text', label: 'Texto curto' },
+  { id: 'textarea', label: 'Texto longo' },
+  { id: 'email', label: 'Email' },
+  { id: 'tel', label: 'Telefone' },
+  { id: 'select', label: 'Escolha' },
+  { id: 'date', label: 'Data' },
+];
+
 function FormsPanel({ biosite, busy, run }: PanelProps) {
   const [title, setTitle] = useState('Pedir contacto');
   const [withEmail, setWithEmail] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
   const forms = [...(biosite.formsData || [])].sort((a, b) => a.position - b.position);
 
   const add = () => run(async () => {
@@ -363,7 +378,7 @@ function FormsPanel({ biosite, busy, run }: PanelProps) {
     <>
       <section className="rounded-2xl border border-[#E4E7EC] bg-white p-4 space-y-3">
         <h3 className="text-sm font-bold text-[#0B1F3A]">Novo formulário de contacto</h3>
-        <p className="text-xs text-[#667085]">Os pedidos enviados aparecem no separador Leads do painel.</p>
+        <p className="text-xs text-[#667085]">Os pedidos enviados aparecem no separador Leads do painel. Depois de criar, toque no formulário para mudar os campos.</p>
         <input className={input} maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} />
         <label className="flex items-center gap-2 text-sm text-[#344054]"><input type="checkbox" checked={withEmail} onChange={(e) => setWithEmail(e.target.checked)} />Pedir email</label>
         <button type="button" className={primary} disabled={busy} onClick={add}><Plus className="h-4 w-4" />Criar formulário</button>
@@ -372,16 +387,72 @@ function FormsPanel({ biosite, busy, run }: PanelProps) {
         <h3 className="text-sm font-bold text-[#0B1F3A]">Formulários ({forms.length})</h3>
         {forms.length === 0 && <p className="text-xs text-[#667085]">Ainda não há formulários.</p>}
         {forms.map((fm) => (
-          <div key={fm.id} className={`flex items-center gap-2 rounded-2xl border bg-white p-3 ${fm.enabled ? 'border-[#E4E7EC]' : 'border-dashed opacity-70'}`}>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[#0B1F3A]">{fm.title}</p>
-              <p className="text-xs text-[#667085]">{fm.fields.length} campos</p>
+          <div key={fm.id} className={`rounded-2xl border bg-white ${fm.enabled ? 'border-[#E4E7EC]' : 'border-dashed opacity-70'}`}>
+            <div className="flex items-center gap-2 p-3">
+              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setOpenId(openId === fm.id ? null : fm.id)}>
+                <p className="truncate text-sm font-semibold text-[#0B1F3A]">{fm.title}</p>
+                <p className="text-xs text-[#667085]">{fm.fields.length} campos · {openId === fm.id ? 'fechar' : 'editar'}</p>
+              </button>
+              <button type="button" aria-label="Ocultar" className={iconBtn} disabled={busy} onClick={() => run(() => StorageService.updateForm(fm.id, { enabled: !fm.enabled }))}>{fm.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
+              <button type="button" aria-label="Remover" className={iconBtn} disabled={busy} onClick={() => { if (confirm('Remover este formulário?')) run(() => StorageService.deleteForm(fm.id)); }}><Trash2 className="h-4 w-4" /></button>
             </div>
-            <button type="button" aria-label="Ocultar" className={iconBtn} disabled={busy} onClick={() => run(() => StorageService.updateForm(fm.id, { enabled: !fm.enabled }))}>{fm.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
-            <button type="button" aria-label="Remover" className={iconBtn} disabled={busy} onClick={() => { if (confirm('Remover este formulário?')) run(() => StorageService.deleteForm(fm.id)); }}><Trash2 className="h-4 w-4" /></button>
+            {openId === fm.id && <FormBuilder form={fm} busy={busy} onSave={(patch) => run(() => StorageService.updateForm(fm.id, patch))} />}
           </div>
         ))}
       </section>
     </>
+  );
+}
+
+function FormBuilder({ form, busy, onSave }: { form: BiositeForm; busy: boolean; onSave: (patch: Record<string, unknown>) => void }) {
+  const [t, setT] = useState(form.title);
+  const [d, setD] = useState(form.description);
+  const [s, setS] = useState(form.submitLabel);
+  const [fields, setFields] = useState<BiositeFormField[]>(form.fields);
+  const upd = (i: number, patch: Partial<BiositeFormField>) => setFields(fields.map((f, j) => (j === i ? { ...f, ...patch } : f)));
+  const move = (i: number, dir: -1 | 1) => { const j = i + dir; if (j < 0 || j >= fields.length) return; setFields(arrayMove(fields, i, j)); };
+  const hasContact = fields.some((f) => ['name', 'phone', 'email'].includes(f.id));
+  const save = () => {
+    const clean = fields
+      .map((f) => ({ ...f, label: f.label.trim().slice(0, 80) || 'Campo', options: f.type === 'select' ? (f.options || []).map((o) => o.trim()).filter(Boolean).slice(0, 12) : undefined }))
+      .slice(0, 12);
+    onSave({ title: t.trim().slice(0, 120) || 'Formulário', description: d.trim().slice(0, 300), submit_label: s.trim().slice(0, 40) || 'Enviar', fields: clean });
+  };
+  const addStd = (id: 'name' | 'phone' | 'email' | 'message') => {
+    const def = { name: { type: 'text', label: 'Nome' }, phone: { type: 'tel', label: 'Telefone / WhatsApp' }, email: { type: 'email', label: 'Email' }, message: { type: 'textarea', label: 'Mensagem' } }[id] as { type: BiositeFormField['type']; label: string };
+    setFields([...fields, { id, ...def, required: false }]);
+  };
+  return (
+    <div className="space-y-3 border-t border-[#F2F4F7] p-3">
+      <div><span className={label}>Título</span><input className={input} maxLength={120} value={t} onChange={(e) => setT(e.target.value)} /></div>
+      <div><span className={label}>Descrição</span><input className={input} maxLength={300} value={d} onChange={(e) => setD(e.target.value)} /></div>
+      <div><span className={label}>Texto do botão</span><input className={input} maxLength={40} value={s} onChange={(e) => setS(e.target.value)} /></div>
+      <span className={label}>Campos</span>
+      {fields.map((f, i) => (
+        <div key={f.id} className="space-y-2 rounded-xl border border-[#F2F4F7] p-2">
+          <div className="flex items-center gap-1">
+            <input className={input} maxLength={80} value={f.label} onChange={(e) => upd(i, { label: e.target.value })} />
+            <button type="button" className={iconBtn} aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
+            <button type="button" className={iconBtn} aria-label="Descer" disabled={i === fields.length - 1} onClick={() => move(i, 1)}>↓</button>
+            <button type="button" className={iconBtn} aria-label="Remover campo" onClick={() => setFields(fields.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></button>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select className="rounded-lg border px-2 py-1.5 text-xs" value={f.type} disabled={['name', 'phone', 'email'].includes(f.id)} onChange={(e) => upd(i, { type: e.target.value as BiositeFormField['type'] })}>
+              {FIELD_TYPES.map((ft) => <option key={ft.id} value={ft.id}>{ft.label}</option>)}
+            </select>
+            <label className="flex items-center gap-1.5 text-xs text-[#344054]"><input type="checkbox" checked={f.required} onChange={(e) => upd(i, { required: e.target.checked })} />Obrigatório</label>
+          </div>
+          {f.type === 'select' && <input className={input} placeholder="Opções separadas por vírgula" value={(f.options || []).join(', ')} onChange={(e) => upd(i, { options: e.target.value.split(',') })} />}
+        </div>
+      ))}
+      <div className="flex flex-wrap gap-2 text-xs">
+        {(['name', 'phone', 'email', 'message'] as const).filter((id) => !fields.some((f) => f.id === id)).map((id) => (
+          <button key={id} type="button" className="rounded-lg border border-[#E4E7EC] px-2 py-1 font-semibold text-[#0066FF]" onClick={() => addStd(id)}>+ {{ name: 'Nome', phone: 'Telefone', email: 'Email', message: 'Mensagem' }[id]}</button>
+        ))}
+        {fields.length < 12 && <button type="button" className="rounded-lg border border-[#E4E7EC] px-2 py-1 font-semibold text-[#0066FF]" onClick={() => setFields([...fields, { id: `f_${Math.random().toString(36).slice(2, 8)}`, type: 'text', label: 'Nova pergunta', required: false }])}>+ Outro campo</button>}
+      </div>
+      {!hasContact && <p className="text-xs text-red-600">Mantenha pelo menos Nome, Telefone ou Email para poder responder ao cliente.</p>}
+      <button type="button" className={primary} disabled={busy || !hasContact} onClick={save}>Guardar formulário</button>
+    </div>
   );
 }

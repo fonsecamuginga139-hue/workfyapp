@@ -524,6 +524,17 @@ export const BiositeViewer: React.FC<BiositeViewerProps> = ({
               </button>
             )}
 
+            {whatsappConfig.callNumber && whatsappConfig.callNumber.replace(/\D/g, '').length >= 7 && (
+              <button
+                onClick={() => handleCallClick(whatsappConfig.callNumber!)}
+                style={getSecondaryButtonStyle()}
+                className={`w-full py-2.5 px-4 ${cardBorderClass} font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-85 ${radiusClass}`}
+              >
+                <Phone className="h-4 w-4 shrink-0" style={{ color: accentColor }} />
+                <span>{whatsappConfig.callLabel || 'Ligar agora'}</span>
+              </button>
+            )}
+
             {/* Configured action buttons */}
             {sections.actionButtons?.enabled &&
               biosite.actionButtonsData?.map((btn) => {

@@ -1012,6 +1012,33 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                     className="w-full rounded-xl border border-[#EEF3F8] bg-[#F7F9FC] py-2 px-3 text-xs text-[#0B1F3A] focus:bg-white focus:border-[#155EEF] focus:outline-hidden resize-none"
                   />
                 </div>
+
+                <label className="flex items-start gap-2 text-xs text-[#0B1F3A]">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={!!biosite.whatsappConfig.floatingButton}
+                    onChange={(e) => triggerAutoSave({ ...biosite, whatsappConfig: { ...biosite.whatsappConfig, floatingButton: e.target.checked } })}
+                  />
+                  <span><b>Botão de WhatsApp fixo no ecrã</b><br /><span className="text-[#667085]">Fica sempre visível no canto enquanto o visitante desliza a página.</span></span>
+                </label>
+
+                <div className="border-t border-[#EEF3F8] pt-4">
+                  <label className="block text-xs font-bold text-[#0B1F3A] mb-1">Número para chamadas (opcional)</label>
+                  <PhoneInput
+                    value={biosite.whatsappConfig.callNumber || ''}
+                    onChange={(v) => triggerAutoSave({ ...biosite, whatsappConfig: { ...biosite.whatsappConfig, callNumber: v } })}
+                  />
+                  <p className="text-[10px] text-[#667085] mt-1">Mostra um botão "Ligar" separado do WhatsApp.</p>
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={biosite.whatsappConfig.callLabel || ''}
+                    onChange={(e) => triggerAutoSave({ ...biosite, whatsappConfig: { ...biosite.whatsappConfig, callLabel: e.target.value } })}
+                    placeholder="Ligar agora"
+                    className="mt-2 w-full rounded-xl border border-[#EEF3F8] bg-[#F7F9FC] py-2 px-3 text-xs text-[#0B1F3A] focus:bg-white focus:border-[#155EEF] focus:outline-hidden"
+                  />
+                </div>
               </div>
             )}
 

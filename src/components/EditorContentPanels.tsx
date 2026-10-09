@@ -217,7 +217,7 @@ function BlockRow({ block, busy, onSave, onDuplicate, onDelete }: {
             ))}
             {items.length < 8 && <button type="button" className="text-xs font-semibold text-[#0066FF]" onClick={() => set('items', [...items, { label: '', url: '', style: 'solid', shape: 'pill', enabled: true }])}>+ Adicionar botão</button>}
           </>)}
-          {(block.type === 'image' || block.type === 'video') && <ImageUploader label="Ficheiro" value={c.url || ''} onChange={(v) => set('url', v)} acceptVideo={block.type === 'video'} aspectRatio="wide" />}
+          {(block.type === 'image' || block.type === 'video') && <ImageUploader label="Ficheiro" value={c.url || ''} onChange={(v) => set('url', v)} acceptVideo aspectRatio="wide" />}
           {block.type === 'video' && <label className="flex items-center gap-2 text-sm text-[#344054]"><input type="checkbox" checked={!!c.autoplay} onChange={(e) => set('autoplay', e.target.checked)} />Tocar sozinho, sem som e em loop</label>}
           {block.type === 'music' && <input className={input} placeholder="https://open.spotify.com/track/..." value={c.url || ''} onChange={(e) => set('url', e.target.value)} />}
           {block.type === 'sticker' && (<>

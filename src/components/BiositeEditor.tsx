@@ -15,7 +15,9 @@ import {
   ButtonEffect,
   CardBorderStyle,
 } from '../types';
-import { StorageService, formatKz } from '../services/storage';
+import { StorageService } from '../services/storage';
+import { formatPrice, CURRENCIES } from '../utils/currency';
+import { PhoneInput } from './PhoneInput';
 import { copyToClipboard, openExternalUrl } from '../utils/browser';
 import { BiositeViewer } from './BiositeViewer';
 import { QrCodeModal } from './QrCodeModal';
@@ -812,9 +814,12 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-[#0B1F3A]">Catálogo & Categorias</h3>
-                    <p className="text-xs text-[#667085]">
-                      Produtos e serviços com preço em Kwanzas (Kz).
-                    </p>
+                    <label className="mt-1 flex items-center gap-2 text-xs text-[#667085]">
+                      Moeda
+                      <select value={biosite.appearance.currency || 'AOA'} onChange={(e) => triggerAutoSave({ ...biosite, appearance: { ...biosite.appearance, currency: e.target.value } })} className="rounded-lg border border-[#EEF3F8] bg-[#F7F9FC] px-2 py-1 text-xs text-[#0B1F3A]">
+                        {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+                      </select>
+                    </label>
                   </div>
                   <div className="flex gap-1.5">
                     <button
@@ -916,7 +921,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                                 {item.name}
                               </h5>
                               <p className="text-[11px] font-semibold text-[#155EEF]">
-                                {formatKz(item.price)}
+                                {formatPrice(item.price, biosite.appearance.currency)}
                               </p>
                             </div>
                           </div>
@@ -957,23 +962,12 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
                   <label className="block text-xs font-bold text-[#0B1F3A] mb-1">
                     Número de WhatsApp
                   </label>
-                  <input
-                    type="text"
+                  <PhoneInput
                     value={biosite.whatsappConfig.phoneNumber}
-                    onChange={(e) =>
-                      triggerAutoSave({
-                        ...biosite,
-                        whatsappConfig: {
-                          ...biosite.whatsappConfig,
-                          phoneNumber: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Ex: +244 923 000 000"
-                    className="w-full rounded-xl border border-[#EEF3F8] bg-[#F7F9FC] py-2 px-3 text-xs text-[#0B1F3A] focus:bg-white focus:border-[#155EEF] focus:outline-hidden"
+                    onChange={(v) => triggerAutoSave({ ...biosite, whatsappConfig: { ...biosite.whatsappConfig, phoneNumber: v } })}
                   />
                   <p className="text-[10px] text-[#667085] mt-1">
-                    Inclua o código do país (ex: +244 para Angola).
+                    Escolha o país e escreva o número.
                   </p>
                 </div>
 
@@ -2424,12 +2418,12 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
             mobileView === 'editor' ? 'hidden md:flex' : 'flex'
           }`}
         >
-          <div className="relative mx-auto w-full max-w-[390px] rounded-[48px] border-[10px] border-[#0B1F3A] bg-white shadow-2xl overflow-hidden">
+          <div className="relative mx-auto w-[375px] max-w-full shrink-0 rounded-[48px] border-[10px] border-[#0B1F3A] bg-white shadow-2xl overflow-hidden">
             {/* Phone speaker notch */}
             <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-40 h-4 w-28 rounded-full bg-[#0B1F3A]" />
 
             {/* Inner viewport */}
-            <div className="h-[680px] w-full overflow-y-auto pt-6 scrollbar-none">
+            <div className="h-[min(720px,calc(100vh-150px))] min-h-[560px] w-full overflow-y-auto overflow-x-hidden pt-6 scrollbar-none">
               <BiositeViewer
                 biosite={biosite}
                 isSimulator={true}
@@ -2507,7 +2501,7 @@ export const BiositeEditor: React.FC<BiositeEditorProps> = ({ biositeId, onNavig
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#0B1F3A] mb-1">
-                    Preço em Kz (AOA) *
+                    Preço ({CURRENCIES.find((c) => c.code === (biosite.appearance.currency || 'AOA'))?.symbol}) *
                   </label>
                   <input
                     type="text"

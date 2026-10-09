@@ -305,7 +305,7 @@ function ServicesPanel({ biosite, busy, run }: PanelProps) {
         <input className={input} placeholder="Nome do serviço" maxLength={120} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <textarea className={input} rows={2} placeholder="Descrição" maxLength={1000} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
         <div className="grid grid-cols-3 gap-2">
-          <input className={input} type="number" min={0} placeholder="Preço (Kz)" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
+          <input className={input} type="number" min={0} placeholder="Preço" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           <input className={input} type="number" min={0} placeholder="Promoção" value={f.promo} onChange={(e) => setF({ ...f, promo: e.target.value })} />
           <input className={input} type="number" min={0} placeholder="Min" value={f.duration} onChange={(e) => setF({ ...f, duration: e.target.value })} />
         </div>
@@ -333,7 +333,7 @@ function ServicesPanel({ biosite, busy, run }: PanelProps) {
             </div>
             <button type="button" className="min-w-0 flex-1 text-left" onClick={() => startEdit(s)}>
               <p className="truncate text-sm font-semibold text-[#0B1F3A]">{s.featured ? '★ ' : ''}{s.name}</p>
-              <p className="text-xs text-[#667085]">{s.promotionalPrice != null ? `${s.promotionalPrice} Kz (antes ${s.price ?? '-'})` : s.price != null ? `${s.price} Kz` : 'Sem preço'}{s.durationMinutes ? ` · ${s.durationMinutes} min` : ''} · Toque para editar</p>
+              <p className="text-xs text-[#667085]">{s.promotionalPrice != null ? `${s.promotionalPrice} (antes ${s.price ?? '-'})` : s.price != null ? `${s.price}` : 'Sem preço'}{s.durationMinutes ? ` · ${s.durationMinutes} min` : ''} · Toque para editar</p>
             </button>
             <button type="button" aria-label="Ocultar" className={iconBtn} disabled={busy} onClick={() => run(() => StorageService.updateService(s.id, { available: !s.available }))}>{s.available ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
             <button type="button" aria-label="Remover" className={iconBtn} disabled={busy} onClick={() => { if (confirm('Remover este serviço?')) run(() => StorageService.deleteService(s.id)); }}><Trash2 className="h-4 w-4" /></button>
